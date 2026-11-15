@@ -1,0 +1,5 @@
+<?php
+
+namespace App\Models;
+
+class DonHang extends Order {}

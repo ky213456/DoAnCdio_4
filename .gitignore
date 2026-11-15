@@ -1,0 +1,25 @@
+# Dependencies
+**/node_modules/
+**/vendor/
+
+# Environment
+**/.env
+**/.env.backup
+**/.env.production
+**/*.local
+
+# Logs
+**/*.log
+**/logs/
+
+# IDE & OS
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Build outputs
+**/dist/
+**/public/build/
+**/public/hot/
+**/public/storage
