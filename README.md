@@ -17,7 +17,7 @@
 ## 📖 MỤC LỤC
 1. [Giới thiệu Dự án](#-giới-thiệu-dự-án)
 2. [Điểm nhấn Công nghệ Cốt lõi](#-điểm-nhấn-công-nghệ-cốt-lõi)
-3. [Đội ngũ Phát triển & Phân vai (Nhóm 1)](#-đội-ngũ-phát-triển--phân-vai-nhóm-1)
+3. [Đội ngũ Phát triển & Phân vai (Nhóm 2)](#-đội-ngũ-phát-triển--phân-vai-nhóm-2)
 4. [Sơ đồ Kiến trúc & Quy trình Nghiệp vụ](#-sơ-đồ-kiến-trúc--quy-trình-nghiệp-vụ)
    - [4.1 Kiến trúc Phân tầng Hệ thống](#41-kiến-trúc-phân-tầng-hệ-thống)
    - [4.2 Quy trình Đặt hàng & Thanh toán VNPAY Sandbox](#42-quy-trình-đặt-hàng--thanh-toán-vnpay-sandbox)
@@ -58,7 +58,7 @@ Hệ thống kết hợp mô hình Frontend hiện đại (**Vue 3 Composition A
 
 ---
 
-## 👥 ĐỘI NGŨ PHÁT TRIỂN & PHÂN VAI (NHÓM 1)
+## 👥 ĐỘI NGŨ PHÁT TRIỂN & PHÂN VAI (NHÓM 2)
 
 > **Học phần:** Đồ án Công nghệ Thông tin / Kỹ thuật Phần mềm (SE447 G) - **Đại học Duy Tân**  
 > **Giảng viên hướng dẫn:** ThS. Nguyễn Phúc Minh Tú
@@ -195,7 +195,7 @@ flowchart LR
 
 ```
 DoAnCdio_4/
-├── be_nhom1_qlbtbdt/             # BACKEND APPLICATION (Laravel 11)
+├── be_nhom2_qlbtbdt/             # BACKEND APPLICATION (Laravel 11)
 │   ├── app/
 │   │   ├── Http/Controllers/     # RESTful API Controllers
 │   │   ├── Models/               # 17 Eloquent Models
@@ -210,7 +210,7 @@ DoAnCdio_4/
 │   ├── composer.json             # PHP Dependencies
 │   └── .env.example              # Mẫu cấu hình môi trường Backend
 │
-├── fe_nhom1_qlbtbdt/             # FRONTEND APPLICATION (Vue 3 + Vite)
+├── fe_nhom2_qlbtbdt/             # FRONTEND APPLICATION (Vue 3 + Vite)
 │   ├── src/
 │   │   ├── assets/               # CSS, Icons, Hình ảnh
 │   │   ├── components/           # UI Components (Admin, Auth, Cart, Home)
@@ -301,7 +301,7 @@ DoAnCdio_4/
 
 ```bash
 # 1. Di chuyển vào thư mục backend
-cd be_nhom1_qlbtbdt
+cd be_nhom2_qlbtbdt
 
 # 2. Cài đặt các thư viện phụ thuộc PHP
 composer install
@@ -328,7 +328,7 @@ Mở một cửa sổ Terminal mới:
 
 ```bash
 # 1. Di chuyển vào thư mục frontend
-cd fe_nhom1_qlbtbdt
+cd fe_nhom2_qlbtbdt
 
 # 2. Cài đặt các gói phụ thuộc NodeJS
 npm install
@@ -364,6 +364,6 @@ Sau khi chạy lệnh `php artisan migrate:fresh --seed`, hệ thống tự đ�
 ---
 
 <p align="center">
-  <b>© 2026 Nhóm 1 - Đồ Án CDIO 4 (SE447 G) - Đại Học Duy Tân</b><br/>
+  <b>© 2026 Nhóm 2 - Đồ Án CDIO 4 (SE447 G) - Đại Học Duy Tân</b><br/>
   <i>Đề tài: Hệ thống Website Quản Lý Bán Thiết Bị Điện Tử Tích Hợp AI Tư Vấn Khách Hàng</i>
 </p>
