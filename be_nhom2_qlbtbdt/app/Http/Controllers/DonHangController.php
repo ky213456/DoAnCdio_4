@@ -34,9 +34,30 @@ class DonHangController extends Controller
 
     public function changeStatus(Request $request)
     {
+        $id = $request->input('id');
+        $trang_thai = $request->input('trang_thai_don_hang');
+        $trang_thai_thanh_toan = $request->input('trang_thai_thanh_toan');
+
+        $donHang = DonHang::find($id);
+        if (!$donHang) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Không tìm thấy đơn hàng #' . $id
+            ], 404);
+        }
+
+        if ($trang_thai) {
+            $donHang->trang_thai_don_hang = $trang_thai;
+        }
+        if ($trang_thai_thanh_toan) {
+            $donHang->trang_thai_thanh_toan = $trang_thai_thanh_toan;
+        }
+        $donHang->save();
+
         return response()->json([
             'status'  => true,
-            'message' => 'Cập nhật trạng thái đơn hàng thành công'
+            'message' => 'Cập nhật trạng thái đơn hàng #' . ($donHang->ma_don_hang ?? $donHang->id) . ' thành công',
+            'data'    => $donHang
         ]);
     }
 
