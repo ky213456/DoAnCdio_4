@@ -17,7 +17,7 @@ class ThongKeController extends Controller
             ->sum('tong_thanh_toan');
 
         if ($tong_doanh_thu == 0) {
-            $tong_doanh_thu = DonHang::sum('tong_thanh_toan');
+            $tong_doanh_thu = DonHang::sum('tong_thanh_toan') ?: 0;
         }
 
         $tong_khach_hang = KhachHang::where('vai_tro', 'customer')->count();
@@ -48,8 +48,8 @@ class ThongKeController extends Controller
             ->take(10)
             ->get();
 
-        // Top 5 sản phẩm nổi bật
-        $top_san_pham = SanPham::select('id', 'ten_san_pham', 'gia_goc', 'gia_khuyen_mai', 'hinh_anh', 'luot_xem')
+        // Top 5 sản phẩm nổi bật (cột trong bảng san_pham là anh_chinh, alias thành hinh_anh cho frontend)
+        $top_san_pham = SanPham::select('id', 'ten_san_pham', 'gia_goc', 'gia_khuyen_mai', 'anh_chinh as hinh_anh', 'anh_chinh', 'luot_xem')
             ->orderBy('luot_xem', 'desc')
             ->take(5)
             ->get();
