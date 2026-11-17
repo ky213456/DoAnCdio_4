@@ -12,7 +12,7 @@ class DonHangController extends Controller
     // ==========================================
     public function getData()
     {
-        // SQL JOIN: Lấy thông tin đơn hàng cùng thông tin khách hàng và voucher
+        // SQL JOIN: Lấy thông tin đơn hàng cùng thông tin khách hàng và mã giảm giá (cột trong DB là ma_code)
         $data = DonHang::leftJoin('nguoi_dung', 'don_hang.nguoi_dung_id', '=', 'nguoi_dung.id')
             ->leftJoin('ma_giam_gia', 'don_hang.ma_giam_gia_id', '=', 'ma_giam_gia.id')
             ->select(
@@ -20,7 +20,8 @@ class DonHangController extends Controller
                 'nguoi_dung.ho_ten as ten_khach_hang',
                 'nguoi_dung.email as email_khach_hang',
                 'nguoi_dung.so_dien_thoai as sdt_khach_hang',
-                'ma_giam_gia.ma_voucher'
+                'ma_giam_gia.ma_code as ma_voucher',
+                'ma_giam_gia.ma_code'
             )
             ->orderBy('don_hang.id', 'desc')
             ->get();
