@@ -338,9 +338,7 @@
                 <div class="pay-badge pay-vnpay">
                   <i class="bi bi-wallet2 me-1 text-danger"></i> Cổng VNPAY QR
                 </div>
-                <div class="pay-badge pay-card">
-                  <i class="bi bi-credit-card-2-front me-1 text-warning"></i> Thẻ Visa/Master
-                </div>
+              
                 <div class="pay-badge pay-cod">
                   <i class="bi bi-cash-stack me-1 text-success"></i> COD Tiền mặt
                 </div>
@@ -398,29 +396,156 @@
     </div>
 
     <!-- ========================================== -->
-    <!-- MODAL THÔNG BÁO TIẾN HÀNH THANH TOÁN -->
+    <!-- MODAL XÁC NHẬN ĐẶT HÀNG & THANH TOÁN PAYOS / COD -->
     <!-- ========================================== -->
-    <div v-if="showCheckoutModal" class="modal-backdrop-custom" @click.self="showCheckoutModal = false">
+    <div v-if="showCheckoutModal" class="modal-backdrop-custom" @click.self="closeCheckoutModal">
       <div class="modal-checkout-dialog">
         <div class="modal-header-custom bg-primary text-white">
-          <h5><i class="bi bi-check2-circle me-2"></i>Xác Nhận Đơn Hàng TechMart</h5>
-          <button class="btn-close-modal text-white" @click="showCheckoutModal = false"><i class="bi bi-x-lg"></i></button>
+          <h5>
+            <i class="bi bi-shield-check me-2"></i>
+            {{ codSuccessOrder ? 'Đặt Hàng Thành Công' : 'Thông Tin Giao Hàng & Thanh Toán' }}
+          </h5>
+          <button class="btn-close-modal text-white" @click="closeCheckoutModal"><i class="bi bi-x-lg"></i></button>
         </div>
-        <div class="modal-body-custom p-4">
+
+        <!-- Màn hình kết quả COD -->
+        <div v-if="codSuccessOrder" class="modal-body-custom p-4">
           <div class="text-center mb-3">
-            <i class="bi bi-box-seam-fill fs-1 text-primary"></i>
-            <h4 class="mt-2 fw-bold text-dark">Đặt Hàng Thành Công (Chế độ Demo)</h4>
+            <i class="bi bi-check-circle-fill fs-1 text-success"></i>
+            <h4 class="mt-2 fw-bold text-dark">Đặt Hàng COD Thành Công!</h4>
             <p class="text-muted small">
-              Đơn hàng trị giá <strong>{{ formatCurrency(finalTotalAmount) }}</strong> đã được gửi tới hệ thống xử lý kho Serial vật lý.
+              Mã đơn hàng của bạn là <strong class="text-primary">#{{ codSuccessOrder.ma_don_hang }}</strong>.
+              Tổng thanh toán khi nhận hàng: <strong class="text-danger">{{ formatCurrency(codSuccessOrder.tong_thanh_toan) }}</strong>.
             </p>
           </div>
-          <div class="alert alert-info small">
-            <i class="bi bi-info-circle-fill me-1"></i>
-            Hệ thống sẽ chuyển hướng bạn tới trang Tra cứu đơn hàng hoặc Cổng thanh toán trực tuyến.
-          </div>
           <div class="d-flex justify-content-end gap-2 mt-4">
-            <button class="btn btn-secondary btn-sm px-3" @click="showCheckoutModal = false">Đóng</button>
+            <button class="btn btn-secondary btn-sm px-3" @click="closeCheckoutModal">Đóng</button>
             <router-link to="/" class="btn btn-primary btn-sm px-4">Về Trang Chủ</router-link>
+          </div>
+        </div>
+
+        <!-- Form nhập thông tin & chọn cổng PayOS / COD -->
+        <div v-else class="modal-body-custom p-4">
+          <div v-if="checkoutError" class="alert alert-danger small py-2 mb-3">
+            <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ checkoutError }}
+          </div>
+
+          <div class="row g-2 mb-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-bold mb-1">Họ tên người nhận <span class="text-danger">*</span></label>
+              <input
+                type="text"
+                v-model="checkoutForm.ho_ten_nguoi_nhan"
+                class="form-control form-control-sm"
+                placeholder="VD: Nguyễn Văn Kỳ"
+              />
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-bold mb-1">Số điện thoại <span class="text-danger">*</span></label>
+              <input
+                type="text"
+                v-model="checkoutForm.so_dien_thoai_nhan"
+                class="form-control form-control-sm"
+                placeholder="VD: 0905123456"
+              />
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-bold mb-1">Địa chỉ giao hàng <span class="text-danger">*</span></label>
+              <input
+                type="text"
+                v-model="checkoutForm.dia_chi_giao_hang"
+                class="form-control form-control-sm"
+                placeholder="Số nhà, đường, phường/xã, quận/huyện, tỉnh/TP"
+              />
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-bold mb-1">Ghi chú đơn hàng</label>
+              <input
+                type="text"
+                v-model="checkoutForm.ghi_chu"
+                class="form-control form-control-sm"
+                placeholder="Giao giờ hành chính, gọi trước khi đến..."
+              />
+            </div>
+          </div>
+
+          <!-- Chọn phương thức thanh toán -->
+          <div class="mb-3">
+            <label class="form-label small fw-bold mb-2">Chọn phương thức thanh toán</label>
+            <div class="d-flex flex-column gap-2">
+              <label
+                class="p-2 rounded border d-flex align-items-center justify-content-between cursor-pointer"
+                :class="checkoutForm.phuong_thuc_thanh_toan === 'payos' ? 'border-primary bg-primary-subtle' : 'bg-light'"
+              >
+                <div class="d-flex align-items-center gap-2">
+                  <input type="radio" value="payos" v-model="checkoutForm.phuong_thuc_thanh_toan" />
+                  <div>
+                    <div class="fw-bold small text-dark">
+                      <i class="bi bi-qr-code-scan text-primary me-1"></i>
+                      Thanh toán VietQR qua PayOS (Tự động xác nhận)
+                    </div>
+                    <div class="text-muted" style="font-size: 11px;">Quét mã QR bằng App Ngân hàng bất kỳ — Xác thực tức thì 24/7</div>
+                  </div>
+                </div>
+                <span class="badge bg-primary">Khuyên dùng</span>
+              </label>
+
+              <label
+                class="p-2 rounded border d-flex align-items-center justify-content-between cursor-pointer"
+                :class="checkoutForm.phuong_thuc_thanh_toan === 'vnpay' ? 'border-danger bg-danger-subtle' : 'bg-light'"
+              >
+                <div class="d-flex align-items-center gap-2">
+                  <input type="radio" value="vnpay" v-model="checkoutForm.phuong_thuc_thanh_toan" />
+                  <div>
+                    <div class="fw-bold small text-dark">
+                      <i class="bi bi-wallet2 text-danger me-1"></i>
+                      Thanh toán qua Cổng VNPAY Sandbox (ATM / QR / Visa)
+                    </div>
+                    <div class="text-muted" style="font-size: 11px;">Thẻ test NCB: 9704198526191432198 • NGUYEN VAN A • 07/15 • OTP 123456 (Tối thiểu 5.000đ)</div>
+                  </div>
+                </div>
+                <span class="badge bg-danger">VNPAY 2.1</span>
+              </label>
+
+              <label
+                class="p-2 rounded border d-flex align-items-center justify-content-between cursor-pointer"
+                :class="checkoutForm.phuong_thuc_thanh_toan === 'cod' ? 'border-success bg-success-subtle' : 'bg-light'"
+              >
+                <div class="d-flex align-items-center gap-2">
+                  <input type="radio" value="cod" v-model="checkoutForm.phuong_thuc_thanh_toan" />
+                  <div>
+                    <div class="fw-bold small text-dark">
+                      <i class="bi bi-cash-stack text-success me-1"></i>
+                      Thanh toán tiền mặt khi nhận hàng (COD)
+                    </div>
+                    <div class="text-muted" style="font-size: 11px;">Kiểm tra máy & mã Serial trước khi thanh toán cho shipper</div>
+                  </div>
+                </div>
+              </label>
+            </div>
+          </div>
+
+          <div class="p-2 rounded bg-light border d-flex justify-content-between align-items-center mb-3">
+            <span class="small fw-semibold">Tổng tiền cần thanh toán:</span>
+            <strong class="text-danger fs-5">{{ formatCurrency(finalTotalAmount) }}</strong>
+          </div>
+
+          <div class="d-flex justify-content-end gap-2">
+            <button class="btn btn-secondary btn-sm px-3" :disabled="isSubmittingOrder" @click="closeCheckoutModal">Hủy</button>
+            <button
+              class="btn btn-primary btn-sm px-4 fw-bold"
+              :disabled="isSubmittingOrder"
+              @click="submitCheckoutOrder"
+            >
+              <span v-if="isSubmittingOrder" class="spinner-border spinner-border-sm me-1"></span>
+              {{
+                isSubmittingOrder
+                  ? 'Đang kết nối cổng thanh toán...'
+                  : (checkoutForm.phuong_thuc_thanh_toan === 'payos'
+                    ? 'Thanh Toán PayOS Ngay'
+                    : (checkoutForm.phuong_thuc_thanh_toan === 'vnpay' ? 'Thanh Toán VNPAY Ngay' : 'Xác Nhận Đặt Hàng COD'))
+              }}
+            </button>
           </div>
         </div>
       </div>
@@ -437,83 +562,56 @@ export default {
     return {
       loading: false,
       currentUser: null,
-      // Dữ liệu giỏ hàng chuẩn khớp 100% WIREFRAME 07
-      cartItems: [
-        {
-          id: 1,
-          name: 'Laptop ASUS ROG Strix G16 (2024)',
-          sku: 'G614JVR-16G-512G-GRAY',
-          specs: 'Core i7-13650HX | RAM 16GB DDR5 | SSD 512GB | RTX 4060',
-          warrantyNote: 'Bảo hành: 24 Tháng chính hãng theo Serial/IMEI',
-          price: 29990000,
-          originalPrice: 36990000,
-          quantity: 1,
-          stock: 8,
-          selected: true,
-          isGift: false,
-          image: 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/t/e/text_ng_n_4__2_108.png'
-        },
-        {
-          id: 2,
-          name: 'Card Màn Hình MSI GeForce RTX 4060',
-          sku: 'MSI-RTX4060-VENTUS-2X-OC',
-          specs: '8GB GDDR6 | 2 Quạt tản nhiệt Torx 4.0',
-          warrantyNote: 'Bảo hành: 36 Tháng chính hãng theo Serial máy',
-          price: 7290000,
-          originalPrice: 8990000,
-          quantity: 1,
-          stock: 8,
-          selected: true,
-          isGift: false,
-          image: 'https://anphat.com.vn/media/product/75_47577_vga_asus_rog_strix_geforce_rtx_4070_ti_super_16gb_gddr6x_02.jpg'
-        },
-        {
-          id: 3,
-          name: 'Chuột Gaming ASUS ROG Keris Wireless AimPoint',
-          sku: 'ROG-KERIS-AIMPOINT-BLACK',
-          specs: 'Cảm biến AimPoint 36.000 DPI | Switch quang ROG | Pin 119h',
-          warrantyNote: 'Quà tặng kèm đơn hàng Laptop ASUS (Khuyến mãi 100%)',
-          price: 0,
-          originalPrice: 2190000,
-          quantity: 1,
-          stock: 8,
-          selected: true,
-          isGift: true,
-          image: 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/c/h/chuot-choi-game-khong-day-asus-rog-keris-wireless-aimpoint-1.png'
-        }
-      ],
+      // Dữ liệu giỏ hàng lấy hoàn toàn từ API Backend
+      cartItems: [],
 
       // Voucher
-      voucherCode: 'TECH500',
-      appliedVoucherName: 'TECH500',
-      voucherDiscount: 500000,
-      isVoucherApplied: true,
-      voucherMessage: 'Áp dụng mã TECH500 thành công: Giảm ngay 500.000đ cho đơn thiết bị điện tử!',
+      voucherCode: '',
+      appliedVoucherName: '',
+      voucherDiscount: 0,
+      isVoucherApplied: false,
+      voucherMessage: '',
       showVoucherModal: false,
 
-      // Danh sách voucher có sẵn
+      // Danh sách voucher có sẵn (khớp DB ma_giam_gia + preset demo)
       availableVouchers: [
+        {
+          code: 'WELCOME100',
+          title: 'Giảm 10% tối đa 200.000đ',
+          discount: 200000,
+          condition: 'Đơn hàng từ 500.000đ'
+        },
+        {
+          code: 'SALEOFF50K',
+          title: 'Giảm 50.000đ',
+          discount: 50000,
+          condition: 'Đơn hàng từ 1.000.000đ'
+        },
+        {
+          code: 'VIPLAPTOP',
+          title: 'Giảm 1.000.000đ',
+          discount: 1000000,
+          condition: 'Đơn hàng Laptop trên 20.000.000đ'
+        },
         {
           code: 'TECH500',
           title: 'Giảm 500.000đ',
           discount: 500000,
           condition: 'Đơn hàng từ 10.000.000đ'
-        },
-        {
-          code: 'TECH1000',
-          title: 'Giảm 1.000.000đ',
-          discount: 1000000,
-          condition: 'Đơn hàng Laptop/PC từ 30.000.000đ'
-        },
-        {
-          code: 'FREESHIP',
-          title: 'Freeship Hỏa Tốc',
-          discount: 150000,
-          condition: 'Tất cả đơn hàng giao nội thành'
         }
       ],
 
-      showCheckoutModal: false
+      showCheckoutModal: false,
+      isSubmittingOrder: false,
+      checkoutError: '',
+      codSuccessOrder: null,
+      checkoutForm: {
+        ho_ten_nguoi_nhan: '',
+        so_dien_thoai_nhan: '',
+        dia_chi_giao_hang: '',
+        ghi_chu: '',
+        phuong_thuc_thanh_toan: 'payos'
+      }
     }
   },
   computed: {
@@ -587,22 +685,30 @@ export default {
     },
     async loadCartData() {
       this.loading = true;
-      const sessionId = localStorage.getItem('techmart_session_id') || 'guest_test_123';
+      const sessionId = localStorage.getItem('techmart_session_id') || '';
       const userId = localStorage.getItem('user_id') || null;
+
+      if (!userId && !sessionId) {
+        this.cartItems = [];
+        this.saveCartToStorage();
+        this.loading = false;
+        return;
+      }
 
       try {
         const res = await axios.get('http://127.0.0.1:8000/api/client/gio-hang/get-data', {
           params: { session_id: sessionId, user_id: userId }
         });
-        if (res.data && res.data.status && res.data.data && res.data.data.length > 0) {
+        if (res.data && res.data.status && Array.isArray(res.data.data)) {
           this.cartItems = res.data.data;
           this.saveCartToStorage();
         } else {
-          this.loadCartFromStorage();
+          this.cartItems = [];
+          this.saveCartToStorage();
         }
       } catch (e) {
-        console.warn('API get-data error, fallback local storage:', e);
-        this.loadCartFromStorage();
+        console.warn('API get-data error:', e);
+        this.cartItems = [];
       } finally {
         this.loading = false;
       }
@@ -726,7 +832,90 @@ export default {
         }
         return;
       }
+
+      this.checkoutError = '';
+      this.codSuccessOrder = null;
+      if (this.currentUser) {
+        this.checkoutForm.ho_ten_nguoi_nhan = this.checkoutForm.ho_ten_nguoi_nhan || this.currentUser.ho_ten || this.currentUser.name || '';
+        this.checkoutForm.so_dien_thoai_nhan = this.checkoutForm.so_dien_thoai_nhan || this.currentUser.so_dien_thoai || '';
+        this.checkoutForm.dia_chi_giao_hang = this.checkoutForm.dia_chi_giao_hang || this.currentUser.dia_chi || '';
+      }
       this.showCheckoutModal = true;
+    },
+    closeCheckoutModal() {
+      if (this.isSubmittingOrder) return;
+      this.showCheckoutModal = false;
+      this.codSuccessOrder = null;
+      this.checkoutError = '';
+    },
+    async submitCheckoutOrder() {
+      this.checkoutError = '';
+      if (!this.checkoutForm.ho_ten_nguoi_nhan.trim() || !this.checkoutForm.so_dien_thoai_nhan.trim() || !this.checkoutForm.dia_chi_giao_hang.trim()) {
+        this.checkoutError = 'Vui lòng điền đầy đủ Họ tên, Số điện thoại và Địa chỉ giao hàng!';
+        return;
+      }
+
+      const selectedItems = this.cartItems
+        .filter(i => i.selected && !i.isGift)
+        .map(i => ({
+          gio_hang_id: i.gio_hang_id || null,
+          bien_the_id: i.bien_the_id || null,
+          ten_san_pham: i.name || i.ten_san_pham,
+          ten_bien_the: i.ten_bien_the || i.specs || 'Tiêu chuẩn',
+          quantity: i.quantity || 1,
+          price: i.price || 0
+        }));
+
+      if (selectedItems.length === 0) {
+        this.checkoutError = 'Vui lòng chọn ít nhất 1 sản phẩm hợp lệ!';
+        return;
+      }
+
+      this.isSubmittingOrder = true;
+      const sessionId = localStorage.getItem('techmart_session_id') || null;
+      const userId = localStorage.getItem('user_id') || (this.currentUser ? this.currentUser.id : null);
+
+      try {
+        const res = await axios.post('http://127.0.0.1:8000/api/client/don-hang/checkout', {
+          user_id: userId,
+          session_id: sessionId,
+          ho_ten_nguoi_nhan: this.checkoutForm.ho_ten_nguoi_nhan.trim(),
+          so_dien_thoai_nhan: this.checkoutForm.so_dien_thoai_nhan.trim(),
+          dia_chi_giao_hang: this.checkoutForm.dia_chi_giao_hang.trim(),
+          ghi_chu: this.checkoutForm.ghi_chu.trim(),
+          phuong_thuc_thanh_toan: this.checkoutForm.phuong_thuc_thanh_toan,
+          ma_voucher: this.isVoucherApplied ? this.appliedVoucherName : '',
+          so_tien_giam: this.isVoucherApplied ? this.voucherDiscount : 0,
+          items: selectedItems
+        });
+
+        if (res.data && res.data.status) {
+          // Xóa các món vừa đặt khỏi mảng cartItems local
+          this.cartItems = this.cartItems.filter(i => !i.selected || i.isGift);
+          this.saveCartToStorage();
+
+          if (res.data.payment_method === 'payos' && res.data.checkout_url) {
+            window.location.href = res.data.checkout_url;
+            return;
+          }
+
+          if (res.data.payment_method === 'vnpay' && res.data.payment_url) {
+            window.location.href = res.data.payment_url;
+            return;
+          }
+
+          this.codSuccessOrder = res.data.don_hang || {
+            ma_don_hang: 'MOI',
+            tong_thanh_toan: this.finalTotalAmount
+          };
+        } else {
+          this.checkoutError = (res.data && res.data.message) || 'Không thể khởi tạo đơn hàng.';
+        }
+      } catch (err) {
+        this.checkoutError = err?.response?.data?.message || 'Lỗi kết nối máy chủ thanh toán (http://127.0.0.1:8000).';
+      } finally {
+        this.isSubmittingOrder = false;
+      }
     },
     formatCurrency(val) {
       if (!val) return '0đ';
@@ -735,21 +924,9 @@ export default {
     saveCartToStorage() {
       try {
         localStorage.setItem('techmart_cart', JSON.stringify(this.cartItems));
+        localStorage.setItem('techmart_cart_count', String(this.cartItems.length));
       } catch (e) {
         console.warn('Cannot save cart to localStorage', e);
-      }
-    },
-    loadCartFromStorage() {
-      try {
-        const stored = localStorage.getItem('techmart_cart');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed) && parsed.length > 0) {
-            this.cartItems = parsed;
-          }
-        }
-      } catch (e) {
-        console.warn('Cannot load cart from localStorage', e);
       }
     }
   }

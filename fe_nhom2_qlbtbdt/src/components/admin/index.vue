@@ -37,6 +37,12 @@
         </a>
 
         <div class="menu-label">HỆ THỐNG & HẬU MÃI</div>
+        <a href="#doi-soat-thanh-toan" class="menu-item" @click.prevent="scrollTo('doi-soat-thanh-toan')">
+          <i class="bi bi-qr-code-scan me-2 text-info"></i> Đối Soát PayOS & Giao Dịch
+        </a>
+        <a href="#giam-sat-ai" class="menu-item" @click.prevent="scrollTo('giam-sat-ai')">
+          <i class="bi bi-robot me-2 text-warning"></i> Giám Sát Trợ Lý AI
+        </a>
         <a href="#nguoi-dung" class="menu-item" @click.prevent="alertFeature('Quản lý Người Dùng & Phân Quyền')">
           <i class="bi bi-people-fill me-2"></i> Người Dùng & Phân Quyền
         </a>
@@ -434,7 +440,7 @@
                 </li>
                 <li class="list-group-item d-flex justify-content-between px-0">
                   <span>Cổng thanh toán</span>
-                  <span class="badge bg-primary-subtle text-primary">COD & VNPAY</span>
+                  <span class="badge bg-primary-subtle text-primary">PayOS VietQR, VNPAY & COD</span>
                 </li>
                 <li class="list-group-item d-flex justify-content-between px-0">
                   <span>Trợ lý Trí tuệ Nhân tạo</span>
@@ -443,6 +449,122 @@
                 <li class="list-group-item d-flex justify-content-between px-0">
                   <span>Trạng thái kết nối API</span>
                   <span class="badge bg-success">Connected 200 OK</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- Phân hệ Đối soát Giao dịch Thanh toán (PayOS / VNPAY / COD) & Giám sát AI -->
+        <div class="row g-3 mt-3">
+          <div class="col-12 col-lg-8" id="doi-soat-thanh-toan">
+            <div class="card border-0 shadow-sm p-3 bg-white h-100">
+              <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                <div>
+                  <h6 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-qr-code-scan text-primary me-2"></i>Quản Lý & Đối Soát Giao Dịch Thanh Toán (PayOS)
+                  </h6>
+                  <small class="text-muted">
+                    Tổng thu qua cổng thành công: <strong class="text-success">{{ formatCurrency(paymentSummary.tong_tien_cong) }}</strong>
+                    (PayOS: <strong class="text-primary">{{ formatCurrency(paymentSummary.tong_tien_payos) }}</strong>)
+                  </small>
+                </div>
+                <select v-model="paymentGatewayFilter" class="form-select form-select-sm w-auto">
+                  <option value="ALL">Tất cả cổng</option>
+                  <option value="payos">PayOS VietQR</option>
+                  <option value="vnpay">VNPAY</option>
+                  <option value="cod">COD</option>
+                </select>
+              </div>
+
+              <div v-if="filteredPayments.length === 0" class="text-muted small py-3 text-center">
+                Chưa có lịch sử giao dịch thanh toán nào.
+              </div>
+              <div v-else class="table-responsive">
+                <table class="table table-sm align-middle mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Mã Giao Dịch</th>
+                      <th>Mã Đơn</th>
+                      <th>Cổng</th>
+                      <th>Số Tiền</th>
+                      <th>Trạng Thái</th>
+                      <th class="text-end">Đối Soát</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="tx in filteredPayments.slice(0, 8)" :key="tx.id">
+                      <td class="font-monospace small fw-semibold">{{ tx.ma_giao_dich }}</td>
+                      <td class="small text-primary">#{{ tx.ma_don_hang || tx.don_hang_id }}</td>
+                      <td>
+                        <span :class="['badge', tx.cong_thanh_toan === 'payos' ? 'bg-primary-subtle text-primary' : (tx.cong_thanh_toan === 'vnpay' ? 'bg-danger-subtle text-danger' : 'bg-secondary-subtle text-secondary')]">
+                          {{ (tx.cong_thanh_toan || '').toUpperCase() }}
+                        </span>
+                      </td>
+                      <td class="fw-bold small">{{ formatCurrency(tx.so_tien) }}</td>
+                      <td>
+                        <span :class="['badge', tx.trang_thai === 'success' ? 'bg-success' : (tx.trang_thai === 'failed' ? 'bg-danger' : 'bg-warning text-dark')]">
+                          {{ tx.trang_thai === 'success' ? 'Thành công' : (tx.trang_thai === 'failed' ? 'Thất bại' : 'Chờ TT') }}
+                        </span>
+                      </td>
+                      <td class="text-end">
+                        <button
+                          v-if="tx.cong_thanh_toan === 'payos'"
+                          class="btn btn-outline-primary btn-xs py-0 px-2"
+                          style="font-size: 11px;"
+                          :disabled="reconcilingId === tx.id"
+                          @click="reconcilePayOsTx(tx)"
+                        >
+                          <i class="bi bi-arrow-repeat me-1"></i>
+                          {{ reconcilingId === tx.id ? 'Đang check...' : 'Đối soát' }}
+                        </button>
+                        <span v-else class="text-muted small">—</span>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-12 col-lg-4" id="giam-sat-ai">
+            <div class="card border-0 shadow-sm p-3 bg-white h-100">
+              <h6 class="fw-bold text-dark mb-3">
+                <i class="bi bi-robot text-warning me-2"></i>Giám Sát Trợ Lý AI (Gemini RAG)
+              </h6>
+              <div class="row g-2 mb-3 text-center">
+                <div class="col-4">
+                  <div class="p-2 rounded bg-light border">
+                    <div class="fw-bold text-primary fs-6">{{ aiAnalytics.total_sessions }}</div>
+                    <div class="text-muted" style="font-size: 11px;">Phiên chat</div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="p-2 rounded bg-light border">
+                    <div class="fw-bold text-success fs-6">{{ aiAnalytics.total_messages }}</div>
+                    <div class="text-muted" style="font-size: 11px;">Tin nhắn</div>
+                  </div>
+                </div>
+                <div class="col-4">
+                  <div class="p-2 rounded bg-light border">
+                    <div class="fw-bold text-danger fs-6">{{ aiAnalytics.total_tokens }}</div>
+                    <div class="text-muted" style="font-size: 11px;">Tokens</div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="small fw-bold text-muted mb-2">Xu hướng SP được AI đề xuất nhiều:</div>
+              <div v-if="!aiAnalytics.top_recommended_products || aiAnalytics.top_recommended_products.length === 0" class="text-muted small">
+                Chưa có dữ liệu đề xuất AI.
+              </div>
+              <ul v-else class="list-group list-group-flush small">
+                <li
+                  v-for="sp in aiAnalytics.top_recommended_products"
+                  :key="sp.id"
+                  class="list-group-item d-flex justify-content-between align-items-center px-0 py-1"
+                >
+                  <span class="text-truncate me-2" :title="sp.ten_san_pham">{{ sp.ten_san_pham }}</span>
+                  <span class="badge bg-warning-subtle text-dark">{{ sp.so_lan_de_xuat }} lần</span>
                 </li>
               </ul>
             </div>
@@ -576,6 +698,25 @@ export default {
       allOrders: [],
       topProducts: [],
 
+      // Đối soát thanh toán PayOS & Giám sát AI (Nguyễn Văn Kỳ)
+      allPayments: [],
+      paymentGatewayFilter: 'ALL',
+      reconcilingId: null,
+      paymentSummary: {
+        tong_giao_dich: 0,
+        thanh_cong: 0,
+        dang_cho: 0,
+        that_bai: 0,
+        tong_tien_payos: 0,
+        tong_tien_cong: 0
+      },
+      aiAnalytics: {
+        total_sessions: 0,
+        total_messages: 0,
+        total_tokens: 0,
+        top_recommended_products: []
+      },
+
       // Modal xử lý đơn hàng
       selectedOrder: null,
       editForm: {
@@ -621,6 +762,10 @@ export default {
       }
 
       return orders;
+    },
+    filteredPayments() {
+      if (this.paymentGatewayFilter === 'ALL') return this.allPayments;
+      return this.allPayments.filter(tx => tx.cong_thanh_toan === this.paymentGatewayFilter);
     }
   },
   mounted() {
@@ -674,6 +819,21 @@ export default {
             }
           });
           this.orderStats = stats;
+        }
+
+        // 3. Gọi API Lịch sử & Đối soát Giao dịch Thanh toán (PayOS)
+        const payRes = await axios.get(apiUrl('admin/thanh-toan/get-data')).catch(() => null);
+        if (payRes && payRes.data && payRes.data.status) {
+          this.allPayments = payRes.data.data || [];
+          if (payRes.data.summary) {
+            this.paymentSummary = { ...this.paymentSummary, ...payRes.data.summary };
+          }
+        }
+
+        // 4. Gọi API Thống kê Trợ lý AI RAG
+        const aiRes = await axios.get(apiUrl('admin/ai/analytics')).catch(() => null);
+        if (aiRes && aiRes.data && aiRes.data.status && aiRes.data.data) {
+          this.aiAnalytics = { ...this.aiAnalytics, ...aiRes.data.data };
         }
 
         if (isManual) {
@@ -769,6 +929,24 @@ export default {
 
     alertFeature(name) {
       this.showAlert(`Chức năng "${name}" đang được kết nối với module chuyên trách của nhóm!`, 'info');
+    },
+
+    async reconcilePayOsTx(tx) {
+      if (!tx || !tx.id) return;
+      this.reconcilingId = tx.id;
+      try {
+        const res = await axios.post(apiUrl('admin/thanh-toan/doi-soat'), { id: tx.id });
+        if (res.data && res.data.status) {
+          this.showAlert(`Đối soát PayOS #${tx.ma_giao_dich}: ${res.data.payos_status} — ${res.data.message}`, 'success');
+          this.loadData();
+        } else {
+          this.showAlert((res.data && res.data.message) || 'Không đối soát được giao dịch này.', 'warning');
+        }
+      } catch (err) {
+        this.showAlert(err?.response?.data?.message || 'Giao dịch chưa tồn tại trên cổng PayOS thực tế.', 'warning');
+      } finally {
+        this.reconcilingId = null;
+      }
     },
 
     scrollTo(id) {

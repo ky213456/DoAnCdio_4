@@ -42,6 +42,18 @@ const clientRoutes = [
     name: 'client-register',
     component: () => import('@/components/auth/index.vue'),
     meta: { title: 'Đăng Ký Tài Khoản - TechMart AI', layout: 'auth' }
+  },
+  {
+    path: '/payment/payos-return',
+    name: 'payos-return',
+    component: () => import('@/components/checkout/PayOsReturn.vue'),
+    meta: { title: 'Kết Quả Thanh Toán PayOS - TechMart AI', layout: 'client' }
+  },
+  {
+    path: '/payment/vnpay-return',
+    name: 'vnpay-return',
+    component: () => import('@/components/checkout/VnpayReturn.vue'),
+    meta: { title: 'Kết Quả Thanh Toán VNPAY - TechMart AI', layout: 'client' }
   }
 ]
 

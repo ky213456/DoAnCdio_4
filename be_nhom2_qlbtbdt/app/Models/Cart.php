@@ -16,10 +16,12 @@ class Cart extends Model
         'session_id',
         'bien_the_id',
         'so_luong',
+        'gia',
     ];
 
     protected $casts = [
         'so_luong' => 'integer',
+        'gia'      => 'decimal:2',
     ];
 
     public function user()
