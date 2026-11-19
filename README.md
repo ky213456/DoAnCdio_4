@@ -17,7 +17,10 @@
 ## 📖 MỤC LỤC
 1. [Giới thiệu Dự án](#-giới-thiệu-dự-án)
 2. [Điểm nhấn Công nghệ Cốt lõi](#-điểm-nhấn-công-nghệ-cốt-lõi)
-3. [Đội ngũ Phát triển & Phân vai (Nhóm 2)](#-đội-ngũ-phát-triển--phân-vai-nhóm-2)
+3. [Đội ngũ Phát triển & Phân công theo Tiến độ (Nhóm 2)](#-đội-ngũ-phát-triển--phân-công-theo-tiến-độ-dự-án-nhóm-2)
+   - [3.1 Các hạng mục dự án đã hoàn thành (Done)](#31-các-hạng-mục-dự-án-đã-hoàn-thành-done)
+   - [3.2 Bảng tổng hợp phân công tiếp theo](#32-bảng-tổng-hợp-phân-công-công-việc-tiếp-theo-to-do--in-progress)
+   - [3.3 Chi tiết kế hoạch triển khai cho từng thành viên](#33-chi-tiết-kế-hoạch-triển-khai-cho-từng-thành-viên)
 4. [Sơ đồ Kiến trúc & Quy trình Nghiệp vụ](#-sơ-đồ-kiến-trúc--quy-trình-nghiệp-vụ)
    - [4.1 Kiến trúc Phân tầng Hệ thống](#41-kiến-trúc-phân-tầng-hệ-thống)
    - [4.2 Quy trình Đặt hàng & Thanh toán VNPAY Sandbox](#42-quy-trình-đặt-hàng--thanh-toán-vnpay-sandbox)
@@ -58,18 +61,138 @@ Hệ thống kết hợp mô hình Frontend hiện đại (**Vue 3 Composition A
 
 ---
 
-## 👥 ĐỘI NGŨ PHÁT TRIỂN & PHÂN VAI (NHÓM 2)
+## 👥 ĐỘI NGŨ PHÁT TRIỂN & PHÂN CÔNG THEO TIẾN ĐỘ DỰ ÁN (NHÓM 2)
 
 > **Học phần:** Đồ án Công nghệ Thông tin / Kỹ thuật Phần mềm (SE447 G) - **Đại học Duy Tân**  
 > **Giảng viên hướng dẫn:** ThS. Nguyễn Phúc Minh Tú
 
-| STT | Họ và Tên | Vai trò Scrum | Nhiệm vụ chuyên môn chính |
-|:---:|:---|:---|:---|
-| 1 | **Nguyễn Văn Kỳ** | **Scrum Master / Tech Lead** | Thiết kế kiến trúc tổng thể, Xác thực Token Sanctum, Phân quyền RBAC, Tích hợp AI Engine (Gemini API) & Quản lý Git. |
-| 2 | **Võ Đình Huy** | **Backend Developer** | Thiết kế CSDL 17 bảng tiếng Việt, Eloquent ORM, Quản lý Danh mục, Sản phẩm, Biến thể cấu hình & Module Serial/IMEI. |
-| 3 | **Lê Quốc Khánh** | **API Specialist** | Xử lý Giỏ hàng, Quy trình Checkout đơn hàng, Áp dụng Voucher & Tích hợp cổng thanh toán trực tuyến VNPAY. |
-| 4 | **Phạm Tiến Ninh** | **Fullstack Developer** | Xây dựng Giao diện Frontend (Vue 3, Vue Router), Quản lý Hồ sơ tài khoản, Sổ địa chỉ và Module Đánh giá. |
-| 5 | **Dương Văn Trọng Đại** | **QA / Tester & BI** | Thiết kế kịch bản kiểm thử, viết Unit/Feature Tests (PHPUnit), kiểm thử tải API và Xây dựng Báo cáo Thống kê BI. |
+### 3.1 Các Hạng Mục Dự Án Đã Hoàn Thành (Done)
+- [x] **Khởi tạo kiến trúc Fullstack Monorepo:** Cấu trúc phân tầng độc lập Laravel 11 RESTful API kết hợp Vue 3 (Composition API) & Vite.
+- [x] **Cơ sở dữ liệu chuẩn hóa 17 bảng:** Hoàn tất hệ thống Migration, Model Eloquent ORM và bộ Database Seeders dữ liệu mẫu phong phú.
+- [x] **Phân hệ Xác thực & Phân quyền (Auth & RBAC):** Đăng ký, đăng nhập, cấp phát Token Bearer và kiểm soát quyền hạn đa vai trò (Admin, Nhân viên, Khách hàng).
+- [x] **Phân hệ Quản lý Tài khoản:** CRUD quản trị Nhân viên và Khách hàng, cơ chế khóa/mở trạng thái tài khoản.
+- [x] **Phân hệ Danh mục, Thương hiệu & Sản phẩm:** CRUD quản trị Admin, hiển thị danh sách, phân trang, bộ lọc đa chiều (CPU, RAM, GPU, Giá) và xem chi tiết sản phẩm phía Client.
+- [x] **Phân hệ Giỏ hàng (Shopping Cart):** Đầy đủ chức năng thêm vào giỏ, cập nhật số lượng, xóa từng món, làm trống giỏ hàng (kết nối hoàn chỉnh FE & BE).
+- [x] **Phân hệ Quản lý Đơn hàng cơ bản:** Admin xem danh sách đơn hàng join khách hàng, cập nhật trạng thái đơn; Khách hàng xem lịch sử đơn hàng của mình.
+- [x] **Phân hệ Tra cứu Bảo hành điện tử:** Tra cứu công khai thông tin thời hạn bảo hành qua mã Serial/IMEI thiết bị (`BaoHanhController`).
+- [x] **Phân hệ Dashboard KPI Thống kê:** Báo cáo tổng đơn hàng, tổng doanh thu, tổng khách hàng, phân bổ trạng thái đơn và danh sách sản phẩm nổi bật.
+
+---
+
+### 3.2 Bảng Tổng Hợp Phân Công Công Việc Tiếp Theo (To-Do & In Progress)
+*(Bao gồm đầy đủ phân công Backend và Giao diện Frontend/UI cho từng thành viên, loại bỏ toàn bộ các việc đã làm)*
+
+| STT | Họ và Tên | MSSV | Vai trò Scrum | Nhiệm vụ Backend Trọng tâm | Nhiệm vụ Giao diện (Frontend / UI) |
+|:---:|:---|:---:|:---|:---|:---|
+| 1 | **Nguyễn Văn Kỳ** | `29211158606` | **Scrum Master / Tech Lead** | • Gemini AI Service (RAG Engine truy vấn phần cứng CSDL)<br>• Cổng VNPAY Checkout & Webhook IPN đối soát ngầm | • UI Quản lý & Giám sát Giao dịch VNPAY (Admin)<br>• UI Cấu hình AI Assistant & Test Prompt (Admin) |
+| 2 | **Trần Đình Quang Dũng** | `29211140331` | **Database & Kho vận** | • API Quản trị kho Serial/IMEI theo lô<br>• Gán Serial đơn xuất kho & Xử lý bảo hành RMA | • UI Quản trị Kho Serial & Modal Nhập lô (Admin)<br>• UI Tra cứu Bảo hành điện tử công khai (Client) |
+| 3 | **Lê Quốc Khánh** | `29211150801` | **Frontend Specialist** | • Hỗ trợ kết nối API Storefront & Tối ưu luồng State | • Widget Chat AI bong bóng nổi (Floating Chat Bubble)<br>• Màn hình Checkout Thanh toán & VNPAY Return |
+| 4 | **Lê Nguyễn Công Giàu** | `29211158896` | **Products & Promotion** | • API Quản trị Voucher & Thuật toán giảm giá giỏ hàng<br>• API Đánh giá review sản phẩm & Kiểm duyệt review | • UI Quản trị Voucher & Khối áp Voucher mua hàng<br>• UI Đánh giá 1-5 sao & Duyệt bình luận Admin |
+| 5 | **Nguyễn Hữu Thọ** | `29211150801` | **Orders & BI Analytics** | • Nghiệp vụ Hủy đơn hàng an toàn rollback kho tự động<br>• API Thống kê nâng cao theo mốc thời gian tùy chọn | • UI Quản lý vòng đời đơn hàng & Modal hủy đơn Client<br>• Dashboard BI biểu đồ trực quan & Xuất báo cáo Excel |
+
+---
+
+### 3.3 Chi Tiết Kế Hoạch Triển Khai Cho Từng Thành Viên (Backend & Giao Diện UI)
+
+#### 3.3.1 NGUYỄN VĂN KỲ – Scrum Master / Tech Lead
+> **Trách nhiệm:** Trực tiếp hiện thực hóa 2 tính năng công nghệ cốt lõi của đề tài: Trợ lý AI và Cổng thanh toán trực tuyến VNPAY (cả Backend và UI Quản trị tương ứng).
+
+* **Nhiệm vụ Backend:**
+  * **File:** `app/Services/AiService.php`, `app/Http/Controllers/ChatBotController.php`, `app/Services/VnPayService.php`, `app/Http/Controllers/DonHangController.php`, `app/Http/Controllers/ThanhToanController.php`, `config/services.php`, `config/vnpay.php`.
+  * **Nghiệp vụ AI (RAG Engine):** Nhận prompt người dùng -> RAG truy vấn CSDL (`san_pham`, `thong_so_ky_thuat`) -> Đóng gói System Prompt IT gửi Gemini API -> Trả lời kèm gợi ý sản phẩm thực tế -> Lưu lịch sử vào `hoi_thoai_ai`, `tin_nhan_ai`.
+  * **Nghiệp vụ Thanh toán VNPAY:** Hiện thực hóa logic hàm `checkout()` tạo đơn thật -> Gọi `VnPayService` băm SHA512 tạo URL thanh toán -> Xử lý Webhook IPN chạy ngầm giữa VNPAY Server và Backend cập nhật trạng thái `da_thanh_toan`.
+  * **API Endpoints:**
+    * `POST /api/client/chat-ai`, `GET /api/client/chat-ai/history/{sessionId}`, `POST /api/client/chat-ai/clear-session`
+    * `POST /api/client/don-hang/checkout`, `GET /api/payment/vnpay/ipn`, `GET /api/payment/vnpay/return`
+* **Nhiệm vụ Giao diện (Frontend / UI):**
+  * **File:** Tích hợp tab Quản lý Giao dịch & AI vào `src/components/admin/index.vue`.
+  * **UI 1: Bảng Quản trị & Đối soát Giao dịch VNPAY (Admin):** Hiển thị danh sách lịch sử giao dịch thanh toán trực tuyến, mã tham chiếu ngân hàng, mã phản hồi `vnp_ResponseCode`, số tiền, trạng thái đối soát IPN và thời gian thanh toán.
+  * **UI 2: Bảng Điều khiển Cấu hình AI Assistant (Admin):** Cho phép Admin kiểm tra token usage, test thử prompt trực tiếp trong Dashboard và theo dõi thống kê số phiên chat AI phát sinh trong ngày.
+* **Definition of Done (DoD):** AI phản hồi < 3s, đúng máy có thật trong kho; VNPAY Sandbox thanh toán thành công và cập nhật trạng thái đơn an toàn; UI Admin quản trị thanh toán trực quan.
+
+---
+
+#### 3.3.2 TRẦN ĐÌNH QUANG DŨNG – Backend Developer / Database & Kho vận
+> **Trách nhiệm:** Hoàn thiện toàn diện phân hệ quản trị dải Serial/IMEI vật lý độc bản, quy trình gán máy xuất kho và giao diện tra cứu bảo hành điện tử.
+
+* **Nhiệm vụ Backend:**
+  * **File:** `app/Http/Controllers/SerialKhoController.php`, `app/Http/Controllers/BaoHanhController.php`, `app/Models/SerialSanPham.php`, `app/Models/BaoHanh.php`.
+  * **Nghiệp vụ:** Nhập kho dải Serial/IMEI theo lô cho từng biến thể cấu hình (`san_sang_ban`); quét gán mã Serial cụ thể vào `chi_tiet_don_hang` khi đóng gói xuất bán (đổi trạng thái máy thành `da_ban` và kích hoạt ngày bảo hành); tiếp nhận phiếu bảo hành RMA (`dang_bao_hanh`).
+  * **API Endpoints:**
+    * `GET /api/admin/serials`, `POST /api/admin/serials/nhap-kho`
+    * `POST /api/admin/don-hang/{id}/assign-serial`
+    * `POST /api/client/bao-hanh/yeu-cau`, `PUT /api/admin/bao-hanh/{id}/cap-nhat-trang-thai`
+* **Nhiệm vụ Giao diện (Frontend / UI):**
+  * **File:** `src/components/admin/SerialManager.vue` (hoặc tab Serial trong Admin), `src/components/baohanh/TraCuuBaoHanh.vue`.
+  * **UI 1: Màn hình Quản trị Kho Serial/IMEI (Admin):** Bảng hiển thị danh sách Serial/IMEI phân theo sản phẩm/biến thể, màu sắc thể hiện trạng thái (`san_sang_ban`, `da_ban`, `dang_bao_hanh`), Modal nhập nhanh danh sách Serial theo lô (dán text nhiều dòng hoặc upload file CSV).
+  * **UI 2: Modal Gán Serial Đơn hàng (Admin):** Khi nhân viên kho bấm duyệt đơn đóng gói, hiển thị popup cho phép chọn/quét mã Serial vật lý tương ứng với từng sản phẩm trong đơn.
+  * **UI 3: Trang Tra cứu Bảo hành điện tử Công khai (Client):** Giao diện tra cứu tại `/tra-cuu-bao-hanh` với thanh tìm kiếm Serial/IMEI nổi bật, thẻ Card hiển thị chi tiết hạn bảo hành điện tử sắc nét, timeline bảo hành và nút gửi yêu cầu hỗ trợ sửa chữa RMA.
+* **Definition of Done (DoD):** Mỗi sản phẩm bán ra gắn đúng 1 Serial duy nhất; màn hình tra cứu bảo hành phản hồi tức thì với giao diện chuẩn nhận diện thương hiệu.
+
+---
+
+#### 3.3.3 LÊ QUỐC KHÁNH – Frontend Developer / Storefront Specialist
+> **Trách nhiệm:** Xây dựng toàn bộ các thành phần giao diện trải nghiệm mua sắm hiện đại, tích hợp widget trợ lý AI nổi và hoàn thiện luồng thanh toán Checkout.
+
+* **Nhiệm vụ Backend:**
+  * Hỗ trợ tinh chỉnh format dữ liệu trả về từ API Storefront, tối ưu tải trang và cache phía Client.
+* **Nhiệm vụ Giao diện (Frontend / UI):**
+  * **File:** `src/components/chat/AiChatWidget.vue`, `src/components/checkout/index.vue`, `src/components/checkout/PaymentReturn.vue`, `src/router/index.js`.
+  * **UI 1: Component Floating Chat Widget AI:**
+    * Nút bong bóng chat nổi cố định góc phải màn hình với animation nhấp nháy thu hút khách hàng.
+    * Khung cửa sổ chat hội thoại: hiển thị avatar AI, hiệu ứng gõ phím 3 chấm (typing indicator).
+    * Hiển thị danh sách sản phẩm AI gợi ý dưới dạng danh sách thẻ Card (hình ảnh, tên cấu hình, giá niêm yết, nút "Xem chi tiết" và "Thêm nhanh vào giỏ").
+  * **UI 2: Màn hình Đặt hàng & Thanh toán (Checkout Page):**
+    * Form nhập thông tin người nhận (Họ tên, SĐT, Địa chỉ, Ghi chú giao hàng).
+    * Bộ chọn phương thức thanh toán trực quan với logo nhận diện (VNPAY Sandbox QR/ATM hoặc COD).
+    * Bảng tóm tắt đơn hàng (tạm tính, phí ship, giảm giá voucher, tổng thanh toán).
+    * Nút "Xác nhận & Thanh toán" điều hướng người dùng sang cổng thanh toán VNPAY an toàn.
+  * **UI 3: Màn hình Kết quả Thanh toán VNPAY (Payment Return View):**
+    * Tiếp nhận các tham số phản hồi từ VNPAY (`vnp_ResponseCode`, `vnp_TransactionNo`, `vnp_Amount`).
+    * Giao diện chúc mừng đặt hàng thành công (Icon xanh, mã đơn hàng, hướng dẫn nhận hàng) hoặc giao diện thông báo lỗi thanh toán kèm lý do và nút "Thanh toán lại".
+* **Definition of Done (DoD):** Giao diện tương thích 100% trên cả Mobile và Desktop; luồng mua sắm liền mạch không giật lag.
+
+---
+
+#### 3.3.4 LÊ NGUYỄN CÔNG GIÀU – Fullstack Developer / Products & Promotion
+> **Trách nhiệm:** Hiện thực hóa trọn vẹn cả Backend và Giao diện UI cho phân hệ Quản trị Voucher khuyến mãi và Hệ thống Đánh giá / Bình luận sản phẩm.
+
+* **Nhiệm vụ Backend:**
+  * **File:** `app/Http/Controllers/VoucherController.php`, `app/Http/Controllers/DanhGiaController.php`, `app/Models/Voucher.php`, `app/Models/Review.php`.
+  * **Nghiệp vụ:** API CRUD Voucher (giảm theo % có trần hoặc tiền mặt cố định, hạn mức, ngày bắt đầu/kết thúc); API áp dụng voucher tính tiền chiết khấu; API gửi review 1-5 sao sau mua hàng và kiểm duyệt bình luận.
+  * **API Endpoints:**
+    * `GET /api/client/vouchers/active`, `POST /api/client/vouchers/apply`, `CRUD /api/admin/vouchers`
+    * `POST /api/client/san-pham/{id}/danh-gia`, `POST /api/admin/danh-gia/change-status`
+* **Nhiệm vụ Giao diện (Frontend / UI):**
+  * **File:** Tab Quản lý Voucher & Đánh giá trong `src/components/admin/index.vue`, Component Review trong `src/components/trangchu/index.vue`.
+  * **UI 1: Màn hình Quản trị Voucher (Admin):** Bảng danh sách voucher, trạng thái hoạt động/hết hạn, Modal thêm mới/chỉnh sửa mã giảm giá với các ô nhập trực quan.
+  * **UI 2: Khối Áp dụng Voucher Mua sắm (Client):** Tích hợp vào Giỏ hàng và Trang Checkout: ô nhập mã coupon kèm nút "Áp dụng", hiển thị danh sách voucher gợi ý "Lưu mã", thông báo số tiền giảm màu xanh nổi bật ngay trên tổng đơn.
+  * **UI 3: Khối Đánh giá & Bình luận Sản phẩm (Client):** Đặt tại chân trang Chi tiết sản phẩm: bộ lọc sao (1-5 sao), thanh tiến độ tỷ lệ đánh giá, form viết bình luận kèm chọn số sao và danh sách nhận xét của khách hàng đã mua có huy hiệu "Đã mua hàng tại TechMart".
+  * **UI 4: Màn hình Kiểm duyệt Đánh giá (Admin):** Bảng danh sách bình luận mới, nút "Duyệt hiển thị" hoặc "Ẩn bình luận vi phạm".
+* **Definition of Done (DoD):** Thuật toán tính giảm giá voucher chính xác trong mọi tình huống; giao diện nhập voucher và đánh giá sao trực quan, mượt mà.
+
+---
+
+#### 3.3.5 NGUYỄN HỮU THỌ – Backend Developer / Orders & BI Analytics
+> **Trách nhiệm:** Hiện thực hóa quy trình nghiệp vụ hủy đơn hàng an toàn (Rollback kho) và nâng cấp Dashboard Báo cáo thống kê kinh doanh BI chuyên sâu cả Backend và Giao diện biểu đồ.
+
+* **Nhiệm vụ Backend:**
+  * **File:** `app/Http/Controllers/DonHangController.php` (bổ sung hàm `cancelOrder`), `app/Http/Controllers/ThongKeController.php` (mở rộng API thống kê nâng cao).
+  * **Nghiệp vụ:** Logic kiểm tra điều kiện hủy đơn hợp lệ (chỉ được hủy khi đơn ở trạng thái `cho_xac_nhan` hoặc `da_xac_nhan`); kích hoạt Database Transaction tự động hoàn lại số lượng tồn kho; tính toán doanh thu theo mốc thời gian tùy chọn; xuất file báo cáo Excel/CSV.
+  * **API Endpoints:**
+    * `POST /api/client/don-hang/{id}/cancel`
+    * `GET /api/admin/thong-ke/doanh-thu-nang-cao`
+    * `GET /api/admin/thong-ke/xuat-excel`
+* **Nhiệm vụ Giao diện (Frontend / UI):**
+  * **File:** Tab Thống kê BI & Đơn hàng trong `src/components/admin/index.vue`, Modal Hủy đơn trong trang lịch sử đơn hàng Client.
+  * **UI 1: Modal Yêu cầu Hủy đơn hàng (Client):** Trong trang lịch sử đơn hàng của khách, nếu đơn chưa đóng gói sẽ hiển thị nút "Hủy đơn hàng"; khi bấm hiện modal chọn lý do hủy (Đổi ý, Sai địa chỉ, Muốn đổi sản phẩm khác), xác nhận và hiển thị thông báo đã hủy kèm hoàn tiền/kho.
+  * **UI 2: Nâng cấp Giao diện Quản lý Đơn hàng (Admin):** Bảng quản trị đơn hàng với bộ lọc trạng thái đa sắc màu (Badge màu), nút xem nhanh chi tiết sản phẩm trong đơn, timeline trạng thái đơn hàng.
+  * **UI 3: Dashboard Báo cáo Kinh doanh BI Nâng cao (Admin):**
+    * Bộ lọc thời gian linh hoạt (Hôm nay, 7 ngày qua, 30 ngày qua, Tháng này, hoặc tùy chọn `Từ ngày - Đến ngày`).
+    * Biểu đồ đường (Line Chart) biểu diễn biến động doanh thu theo ngày/tháng.
+    * Biểu đồ tròn (Donut Chart) tỷ lệ đơn hàng thành công vs đơn hàng bị hủy.
+    * Nút bấm "Xuất Báo Cáo Excel" tải file bảng tính số liệu kinh doanh về máy chỉ với 1 cú click.
+* **Definition of Done (DoD):** Hủy đơn an toàn không làm lệch kho; Dashboard hiển thị biểu đồ sắc nét, trích xuất file Excel chính xác phục vụ báo cáo hội đồng.
 
 ---
 

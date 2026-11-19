@@ -8,6 +8,7 @@ use App\Http\Controllers\GioHangController;
 use App\Http\Controllers\KhachHangController;
 use App\Http\Controllers\NhanVienController;
 use App\Http\Controllers\SanPhamController;
+use App\Http\Controllers\ThanhToanController;
 use App\Http\Controllers\ThongKeController;
 use App\Http\Controllers\ThuongHieuController;
 use App\Http\Controllers\TrangChuController;
@@ -73,6 +74,13 @@ Route::prefix('')->group(function () {
 
         //Thống kê
         Route::get('thong-ke/kpi-dashboard', [ThongKeController::class, 'kpiDashboard']);
+
+        //Giám sát & Xu hướng Trợ lý AI
+        Route::get('ai/analytics', [ChatBotController::class, 'adminAnalytics']);
+
+        //Quản lý & Đối soát Giao dịch Thanh toán (PayOS / VNPAY / COD)
+        Route::get('thanh-toan/get-data', [ThanhToanController::class, 'getAdminTransactions']);
+        Route::post('thanh-toan/doi-soat', [ThanhToanController::class, 'reconcilePayOs']);
     });
 });
 
@@ -111,5 +119,20 @@ Route::prefix('')->group(function () {
 
         //ChatBot AI
         Route::post('chat-ai', [ChatBotController::class, 'chatWithAI']);
+        Route::get('chat-ai/history', [ChatBotController::class, 'getHistory']);
+        Route::post('chat-ai/clear-session', [ChatBotController::class, 'clearSession']);
     });
+});
+
+// ==========================================
+// 3. ROUTE CỔNG THANH TOÁN PAYOS & VNPAY
+// ==========================================
+Route::prefix('/payment/payos')->group(function () {
+    Route::get('/verify/{orderCode}', [ThanhToanController::class, 'verifyPayOs']);
+    Route::post('/webhook', [ThanhToanController::class, 'payOsWebhook']);
+});
+
+Route::prefix('/payment/vnpay')->group(function () {
+    Route::get('/verify', [ThanhToanController::class, 'verifyVnPay']);
+    Route::get('/ipn', [ThanhToanController::class, 'vnpayIpn']);
 });

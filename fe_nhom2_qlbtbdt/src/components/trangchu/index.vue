@@ -732,28 +732,103 @@
             <i class="bi bi-robot text-warning me-2 fs-5"></i>
             <div>
               <div class="chat-header-title">Trợ Lý AI TechMart</div>
-              <div class="chat-header-status"><span class="status-dot"></span> Sẵn sàng tư vấn (Gemini Flash)</div>
+              <div class="chat-header-status">
+                <span class="status-dot"></span> Gemini RAG • Khóa phạm vi CSDL dự án
+              </div>
             </div>
           </div>
-          <button class="btn-close-chat" @click="isAiChatOpen = false"><i class="bi bi-x-lg"></i></button>
+          <div class="d-flex align-items-center gap-2">
+            <button
+              class="btn-reset-chat"
+              @click="clearAiSession"
+              :disabled="isAiThinking"
+              title="Làm mới phiên trò chuyện"
+            >
+              <i class="bi bi-arrow-clockwise"></i>
+            </button>
+            <button class="btn-close-chat" @click="isAiChatOpen = false"><i class="bi bi-x-lg"></i></button>
+          </div>
         </div>
 
-        <div class="chat-body">
+        <div class="chat-body" ref="aiChatBody">
           <div
             v-for="(msg, index) in aiMessages"
             :key="index"
             :class="['chat-bubble', msg.sender === 'user' ? 'bubble-user' : 'bubble-ai']"
           >
-            {{ msg.text }}
+            <div v-if="msg.sender === 'user'">{{ msg.text }}</div>
+            <div v-else class="ai-formatted-text" v-html="formatAiText(msg.text)"></div>
+
+            <!-- Danh sách sản phẩm đề xuất trích xuất từ CSDL -->
+            <div
+              v-if="msg.suggested_products && msg.suggested_products.length > 0"
+              class="ai-suggested-cards mt-2"
+            >
+              <div class="ai-suggest-label">Sản phẩm từ CSDL TechMart:</div>
+              <div
+                v-for="prod in msg.suggested_products"
+                :key="prod.id"
+                class="ai-prod-card"
+              >
+                <img
+                  v-if="prod.anh_chinh"
+                  :src="prod.anh_chinh"
+                  :alt="prod.ten_san_pham"
+                  class="ai-prod-thumb"
+                />
+                <div class="ai-prod-info">
+                  <div class="ai-prod-name" :title="prod.ten_san_pham">{{ prod.ten_san_pham }}</div>
+                  <div class="ai-prod-price">{{ formatCurrency(prod.gia_khuyen_mai || prod.gia_goc) }}</div>
+                  <div class="ai-prod-meta">BH: {{ prod.thoi_gian_bao_hanh }} tháng</div>
+                </div>
+                <button
+                  class="btn-ai-add-cart"
+                  @click="themVaoGio(prod)"
+                  title="Thêm vào giỏ hàng"
+                >
+                  <i class="bi bi-cart-plus-fill"></i>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Trạng thái AI đang truy xuất CSDL -->
+          <div v-if="isAiThinking" class="chat-bubble bubble-ai ai-thinking-bubble">
+            <span class="thinking-dot"></span>
+            <span class="thinking-dot"></span>
+            <span class="thinking-dot"></span>
+            <span class="ms-1 text-muted">Đang truy xuất CSDL TechMart...</span>
           </div>
         </div>
 
         <div class="chat-quick-chips">
-          <button class="chip" @click="sendAiQuestion('Tư vấn laptop gaming tầm giá 25 - 30 triệu')">
-            <i class="bi bi-laptop me-1"></i>Laptop 25-30tr
+          <button
+            class="chip"
+            :disabled="isAiThinking"
+            @click="sendAiQuestion('Xu hướng sản phẩm xem nhiều và bán chạy nhất trong CSDL là gì?')"
+          >
+            <i class="bi bi-graph-up-arrow me-1"></i>Xu hướng SP hot
           </button>
-          <button class="chip" @click="sendAiQuestion('Build PC đồ họa 3D render')">
-            <i class="bi bi-pc-display me-1"></i>Build PC đồ họa
+          <button
+            class="chip"
+            :disabled="isAiThinking"
+            @click="sendAiQuestion('Tư vấn laptop gaming đang có trong kho kèm mã giảm giá')"
+          >
+            <i class="bi bi-laptop me-1"></i>Laptop Gaming
+          </button>
+          <button
+            class="chip"
+            :disabled="isAiThinking"
+            @click="sendAiQuestion('Shop đang có màn hình 2K nào đáng mua?')"
+          >
+            <i class="bi bi-display me-1"></i>Màn hình 2K
+          </button>
+          <button
+            class="chip"
+            :disabled="isAiThinking"
+            @click="sendAiQuestion('Shop đang có những mã giảm giá Voucher nào?')"
+          >
+            <i class="bi bi-ticket-perforated me-1"></i>Mã Voucher
           </button>
         </div>
 
@@ -761,11 +836,12 @@
           <input
             type="text"
             v-model="aiInput"
+            :disabled="isAiThinking"
             @keyup.enter="sendAiQuestion()"
-            placeholder="Hỏi AI cấu hình, ngân sách bạn muốn..."
+            placeholder="Hỏi cấu hình, xu hướng, voucher trong CSDL..."
           />
-          <button class="btn-send-ai" @click="sendAiQuestion()">
-            <i class="bi bi-send-fill me-1"></i>Gửi
+          <button class="btn-send-ai" :disabled="isAiThinking" @click="sendAiQuestion()">
+            <i class="bi bi-send-fill me-1"></i>{{ isAiThinking ? '...' : 'Gửi' }}
           </button>
         </div>
       </div>
@@ -1129,10 +1205,12 @@ export default {
 
       // AI Chat Widget Quick State
       isAiChatOpen: false,
+      isAiThinking: false,
       aiMessages: [
         {
           sender: 'ai',
-          text: 'Xin chào anh Nguyễn Văn Kỳ! Em là Trợ lý AI TechMart. Anh đang cần tư vấn laptop gaming, máy trạm đồ họa hay linh kiện PC với ngân sách bao nhiêu ạ?'
+          text: 'Xin chào bạn! Em là Trợ lý AI TechMart (kết nối trực tiếp CSDL dự án). Bạn cần tư vấn Laptop, Màn hình, Linh kiện PC, Gaming Gear, xem xu hướng bán chạy hay tra cứu Voucher/Bảo hành ạ?',
+          suggested_products: []
         }
       ],
       aiInput: '',
@@ -1145,7 +1223,7 @@ export default {
       wishlist: [],
 
       // Giỏ hàng & Toast State
-      cartTotalCount: 3,
+      cartTotalCount: 0,
       isCartBouncing: false,
       showToast: false,
       toastMessage: '',
@@ -1225,6 +1303,7 @@ export default {
     this.loadData();
     this.loadAllSanPham();
     this.fetchCartData();
+    this.loadAiChatHistory();
     this.startTimer();
     this.startHeroSlider();
     window.addEventListener('scroll', this.handleScroll, { passive: true });
@@ -1406,25 +1485,15 @@ export default {
         const res = await axios.get('http://127.0.0.1:8000/api/client/gio-hang/get-data', {
           params: { session_id: sessionId, user_id: userId }
         });
-        if (res.data && res.data.status && res.data.data && res.data.data.length > 0) {
-          this.cartTotalCount = res.data.total_items || res.data.data.length;
+        if (res.data && res.data.status && Array.isArray(res.data.data)) {
+          this.cartTotalCount = res.data.total_items ?? res.data.data.length;
           localStorage.setItem('techmart_cart', JSON.stringify(res.data.data));
-          localStorage.setItem('techmart_cart_count', this.cartTotalCount);
+          localStorage.setItem('techmart_cart_count', String(this.cartTotalCount));
         } else {
-          const stored = localStorage.getItem('techmart_cart');
-          if (stored) {
-            const parsed = JSON.parse(stored);
-            if (Array.isArray(parsed) && parsed.length > 0) {
-              this.cartTotalCount = parsed.length;
-            }
-          }
+          this.cartTotalCount = 0;
         }
       } catch (e) {
-        const stored = localStorage.getItem('techmart_cart');
-        if (stored) {
-          const parsed = JSON.parse(stored);
-          if (Array.isArray(parsed)) this.cartTotalCount = parsed.length;
-        }
+        this.cartTotalCount = 0;
       }
     },
     async themVaoGio(item) {
@@ -1441,10 +1510,16 @@ export default {
       const sessionId = this.getSessionId();
       const userId = localStorage.getItem('user_id') || (this.currentUser ? this.currentUser.id : null);
 
+      const giaSanPham = (item.gia_khuyen_mai && Number(item.gia_khuyen_mai) > 0)
+        ? Number(item.gia_khuyen_mai)
+        : Number(item.gia_goc || item.gia_ban || 0);
+
       try {
         const res = await axios.post('http://127.0.0.1:8000/api/client/gio-hang/them-vao-gio', {
           san_pham_id: item.id,
+          bien_the_id: item.bien_the_id || null,
           so_luong: 1,
+          gia: giaSanPham > 0 ? giaSanPham : null,
           session_id: sessionId,
           user_id: userId
         });
@@ -1457,16 +1532,12 @@ export default {
           }
           this.triggerCartBounce();
           this.showCartToast(res.data.message || `Đã thêm "${item.ten_san_pham}" vào giỏ hàng!`, item);
-          this.syncLocalCartAfterAdd(item);
+          await this.fetchCartData();
         } else {
           throw new Error(res.data ? res.data.message : 'Lỗi');
         }
       } catch (err) {
-        console.warn('Fallback local add cart:', err);
-        this.cartTotalCount++;
-        this.triggerCartBounce();
-        this.syncLocalCartAfterAdd(item);
-        this.showCartToast(`Đã thêm "${item.ten_san_pham}" vào giỏ hàng!`, item);
+        alert((err && err.response && err.response.data && err.response.data.message) || 'Không thể thêm vào giỏ hàng qua API. Vui lòng kiểm tra Backend!');
       } finally {
         setTimeout(() => {
           item.isAdding = false;
@@ -1614,19 +1685,105 @@ export default {
         }
       }, 1000);
     },
-    sendAiQuestion(promptText) {
-      const query = promptText || this.aiInput;
-      if (!query.trim()) return;
+    scrollToBottomAiChat() {
+      this.$nextTick(() => {
+        const el = this.$refs.aiChatBody;
+        if (el) {
+          el.scrollTop = el.scrollHeight;
+        }
+      });
+    },
+    formatAiText(rawText) {
+      if (!rawText) return '';
+      let escaped = String(rawText)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;');
+      escaped = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+      escaped = escaped.replace(/`([^`]+)`/g, '<code class="ai-inline-code">$1</code>');
+      escaped = escaped.replace(/\n/g, '<br/>');
+      return escaped;
+    },
+    async loadAiChatHistory() {
+      const sessionId = this.getSessionId();
+      try {
+        const res = await axios.get('http://127.0.0.1:8000/api/client/chat-ai/history', {
+          params: { session_id: sessionId }
+        });
+        if (res.data && res.data.status && Array.isArray(res.data.messages) && res.data.messages.length > 0) {
+          this.aiMessages = [
+            this.aiMessages[0],
+            ...res.data.messages
+          ];
+          this.scrollToBottomAiChat();
+        }
+      } catch (e) {
+        // Giữ nguyên lời chào mặc định nếu chưa có lịch sử
+      }
+    },
+    async clearAiSession() {
+      if (this.isAiThinking) return;
+      const sessionId = this.getSessionId();
+      try {
+        await axios.post('http://127.0.0.1:8000/api/client/chat-ai/clear-session', {
+          session_id: sessionId
+        });
+      } catch (e) {
+        // Bỏ qua lỗi mạng nếu có
+      }
+      this.aiMessages = [
+        {
+          sender: 'ai',
+          text: 'Đã làm mới cuộc trò chuyện! Bạn cần em tư vấn sản phẩm, cấu hình phần cứng hay kiểm tra xu hướng từ CSDL TechMart ạ?',
+          suggested_products: []
+        }
+      ];
+    },
+    async sendAiQuestion(promptText) {
+      if (this.isAiThinking) return;
+      const query = (promptText || this.aiInput || '').trim();
+      if (!query) return;
 
       this.aiMessages.push({ sender: 'user', text: query });
-      this.aiInput = '';
+      if (!promptText) {
+        this.aiInput = '';
+      }
+      this.isAiThinking = true;
+      this.scrollToBottomAiChat();
 
-      setTimeout(() => {
+      const sessionId = this.getSessionId();
+      const userId = localStorage.getItem('user_id') || null;
+
+      try {
+        const res = await axios.post('http://127.0.0.1:8000/api/client/chat-ai', {
+          session_id: sessionId,
+          user_id: userId,
+          message: query
+        });
+
+        if (res.data && res.data.status) {
+          this.aiMessages.push({
+            sender: 'ai',
+            text: res.data.reply,
+            suggested_products: res.data.suggested_products || []
+          });
+        } else {
+          this.aiMessages.push({
+            sender: 'ai',
+            text: (res.data && res.data.message) || 'Không thể lấy phản hồi từ Trợ lý AI lúc này.',
+            suggested_products: []
+          });
+        }
+      } catch (err) {
         this.aiMessages.push({
           sender: 'ai',
-          text: `Dạ theo nhu cầu "${query}", em đề xuất mẫu ASUS ROG Strix G16 (i7-13650HX / RTX 4060) đang có giá cực sốc 29.990.000đ trong đợt Flash Sale hôm nay ạ!`
+          text: 'Không kết nối được máy chủ Backend (http://127.0.0.1:8000). Vui lòng kiểm tra php artisan serve!',
+          suggested_products: []
         });
-      }, 700);
+      } finally {
+        this.isAiThinking = false;
+        this.scrollToBottomAiChat();
+      }
     },
     scrollBestSellers(direction) {
       const container = this.$refs.bestSellerScroll;
@@ -3846,8 +4003,9 @@ export default {
   position: absolute;
   bottom: 60px;
   right: 0;
-  width: 360px;
-  height: 460px;
+  width: 390px;
+  max-width: calc(100vw - 32px);
+  height: 510px;
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
@@ -3904,16 +4062,137 @@ export default {
   background: #22c55e;
 }
 
+.btn-reset-chat,
 .btn-close-chat {
   background: transparent;
   border: none;
   color: #94a3b8;
   cursor: pointer;
   font-size: 14px;
+  transition: color 0.15s;
 }
 
+.btn-reset-chat:hover,
 .btn-close-chat:hover {
   color: #ffffff;
+}
+
+.ai-inline-code {
+  background: #eff6ff;
+  color: #1d4ed8;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 11.5px;
+  font-weight: 600;
+}
+
+.ai-suggested-cards {
+  border-top: 1px dashed #cbd5e1;
+  padding-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ai-suggest-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #475569;
+}
+
+.ai-prod-card {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 6px 8px;
+  transition: border-color 0.15s;
+}
+
+.ai-prod-card:hover {
+  border-color: #3b82f6;
+}
+
+.ai-prod-thumb {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: #ffffff;
+  flex-shrink: 0;
+}
+
+.ai-prod-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.ai-prod-name {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #0f172a;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ai-prod-price {
+  font-size: 11.5px;
+  font-weight: 800;
+  color: #dc2626;
+}
+
+.ai-prod-meta {
+  font-size: 10px;
+  color: #64748b;
+}
+
+.btn-ai-add-cart {
+  background: #2563eb;
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.btn-ai-add-cart:hover {
+  background: #1d4ed8;
+}
+
+.ai-thinking-bubble {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.thinking-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #3b82f6;
+  animation: aiBlink 1.2s infinite ease-in-out;
+}
+
+.thinking-dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.thinking-dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes aiBlink {
+  0%, 80%, 100% { opacity: 0.25; transform: scale(0.8); }
+  40% { opacity: 1; transform: scale(1.1); }
 }
 
 .chat-body {

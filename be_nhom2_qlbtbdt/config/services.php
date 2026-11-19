@@ -35,4 +35,24 @@ return [
         ],
     ],
 
+    'gemini' => [
+        'key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+    ],
+
+    'payos' => [
+        'client_id'    => env('PAYOS_CLIENT_ID'),
+        'api_key'      => env('PAYOS_API_KEY'),
+        'checksum_key' => env('PAYOS_CHECKSUM_KEY'),
+        'demo_amount'  => (int) env('PAYOS_DEMO_AMOUNT', 0),
+        'base_url'     => env('PAYOS_BASE_URL', 'https://api-merchant.payos.vn'),
+    ],
+
+    'vnpay' => [
+        'tmn_code'    => env('VNPAY_TMN_CODE'),
+        'hash_secret' => env('VNPAY_HASH_SECRET'),
+        'url'         => env('VNPAY_URL', 'https://sandbox.vnpayment.vn/paymentv2/vpcpay.html'),
+        'return_url'  => env('VNPAY_RETURN_URL', 'http://localhost:5173/payment/vnpay-return'),
+    ],
+
 ];
