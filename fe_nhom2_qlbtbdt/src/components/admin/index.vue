@@ -29,12 +29,10 @@
         <a href="#san-pham" class="menu-item" @click.prevent="scrollTo('top-products')">
           <i class="bi bi-laptop me-2"></i> Quản Lý Sản Phẩm
         </a>
-        <a href="#kho-serial" class="menu-item" @click.prevent="scrollTo('kho-serial')">
-          <i class="bi bi-upc-scan me-2 text-success"></i> Kho Serial/IMEI FIFO
-          <span v-if="serialStats.trong_kho > 0" class="badge bg-success ms-auto rounded-pill">
-            {{ serialStats.trong_kho }}
-          </span>
-        </a>
+        <router-link to="/admin/serial" class="menu-item">
+          <i class="bi bi-upc-scan me-2 text-success"></i> Kho Serial & IMEI
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-auto small">Page riêng</span>
+        </router-link>
         <a href="#voucher" class="menu-item" @click.prevent="alertFeature('Quản lý Voucher Khuyến Mãi')">
           <i class="bi bi-ticket-perforated me-2"></i> Quản Lý Voucher
         </a>
@@ -573,280 +571,27 @@
             </div>
           </div>
 
-          <!-- ========================================== -->
-          <!-- ⓯ QUẢN LÝ KHO SERIAL & IMEI ĐỘC BẢN (UC08) -->
-          <!-- ========================================== -->
-          <div class="col-12" id="kho-serial">
-            <div class="card border-0 shadow-sm p-4 bg-white">
-              <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+          <!-- Thẻ liên kết nhanh tới Phân hệ Kho Serial & IMEI (UC08) -->
+          <div class="col-12 mb-3">
+            <div class="card border-0 shadow-sm p-4 bg-white d-flex flex-row justify-content-between align-items-center">
+              <div class="d-flex align-items-center">
+                <div class="bg-primary text-white p-3 rounded-3 me-3">
+                  <i class="bi bi-upc-scan fs-3"></i>
+                </div>
                 <div>
-                  <h6 class="fw-bold text-dark mb-1 fs-5">
-                    <i class="bi bi-upc-scan text-primary me-2"></i>Quản Trị Kho Serial & IMEI Từng Chiếc Máy (UC08 - FIFO)
-                  </h6>
-                  <p class="text-muted small mb-0">
-                    Mỗi thiết bị điện tử bán ra đều được định danh độc bản qua mã Serial/IMEI từ lúc nhập kho, gán đơn hàng xuất bán đến kích hoạt bảo hành điện tử.
-                  </p>
-                </div>
-                <div class="d-flex gap-2">
-                  <button class="btn btn-outline-secondary btn-sm" @click="loadSerialData">
-                    <i class="bi bi-arrow-clockwise me-1"></i> Làm mới kho
-                  </button>
-                  <button class="btn btn-primary btn-sm px-3" @click="openBatchImportModal">
-                    <i class="bi bi-plus-circle me-1"></i> + Nhập Lô Serial Mới
-                  </button>
+                  <h6 class="fw-bold text-dark mb-1 fs-6">Phân Hệ Quản Trị Kho Serial & IMEI Từng Chiếc Máy (UC08 - FIFO)</h6>
+                  <p class="text-muted small mb-0">Đã được xây dựng thành trang quản trị chuyên sâu độc lập: quản lý định danh vật lý độc bản, nhập lô tự động, và theo dõi bảo hành điện tử.</p>
                 </div>
               </div>
-
-              <!-- 4 Thẻ KPI Kho Serial -->
-              <div class="row g-3 mb-4 text-center">
-                <div class="col-6 col-md-3">
-                  <div class="p-3 rounded border bg-light">
-                    <div class="text-muted small">TỔNG MÃ SERIAL</div>
-                    <div class="fs-4 fw-bold text-dark mt-1">{{ serialStats.total }}</div>
-                    <span class="small text-muted">Đang quản lý</span>
-                  </div>
-                </div>
-                <div class="col-6 col-md-3">
-                  <div class="p-3 rounded border bg-success-subtle border-success-subtle">
-                    <div class="text-success small fw-semibold">SẴN SÀNG XUẤT BÁN</div>
-                    <div class="fs-4 fw-bold text-success mt-1">{{ serialStats.trong_kho }}</div>
-                    <span class="small text-success">Còn trong kho</span>
-                  </div>
-                </div>
-                <div class="col-6 col-md-3">
-                  <div class="p-3 rounded border bg-primary-subtle border-primary-subtle">
-                    <div class="text-primary small fw-semibold">ĐÃ XUẤT BÁN GÁN ĐƠN</div>
-                    <div class="fs-4 fw-bold text-primary mt-1">{{ serialStats.da_ban }}</div>
-                    <span class="small text-primary">Đã kích hoạt BH</span>
-                  </div>
-                </div>
-                <div class="col-6 col-md-3">
-                  <div class="p-3 rounded border bg-danger-subtle border-danger-subtle">
-                    <div class="text-danger small fw-semibold">MÁY LỖI / RMA</div>
-                    <div class="fs-4 fw-bold text-danger mt-1">{{ serialStats.loi }}</div>
-                    <span class="small text-danger">Chờ bảo hành</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Bộ lọc & Tìm kiếm Serial -->
-              <div class="row g-2 mb-3">
-                <div class="col-md-3">
-                  <select v-model="serialFilterStatus" @change="filterSerialsList" class="form-select form-select-sm">
-                    <option value="ALL">-- Tất cả trạng thái --</option>
-                    <option value="trong_kho">Sẵn sàng xuất bán (Trong kho)</option>
-                    <option value="da_ban">Đã xuất bán theo đơn</option>
-                    <option value="loi">Máy lỗi / RMA</option>
-                    <option value="giu_cho">Đang giữ chỗ</option>
-                  </select>
-                </div>
-                <div class="col-md-9">
-                  <div class="input-group input-group-sm">
-                    <span class="input-group-text bg-white"><i class="bi bi-search"></i></span>
-                    <input
-                      type="text"
-                      v-model="serialSearch"
-                      @input="filterSerialsList"
-                      placeholder="Tìm theo Mã Serial, IMEI, Tên sản phẩm, Mã đơn hàng..."
-                      class="form-control"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <!-- Bảng Danh Sách Serial -->
-              <div class="table-responsive">
-                <table class="table table-hover table-sm align-middle mb-0">
-                  <thead class="table-light small">
-                    <tr>
-                      <th style="width: 50px;">STT</th>
-                      <th>Mã Serial (S/N)</th>
-                      <th>Mã IMEI</th>
-                      <th>Thiết Bị & Biến Thể</th>
-                      <th>Trạng Thái</th>
-                      <th>Ngày Nhập</th>
-                      <th>Đơn Hàng Gán</th>
-                      <th>Hạn Bảo Hành</th>
-                      <th class="text-center" style="width: 130px;">Thao Tác</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr v-if="filteredSerials.length === 0">
-                      <td colspan="9" class="text-center py-4 text-muted">
-                        <i class="bi bi-inbox fs-3 d-block mb-1"></i>
-                        Không tìm thấy mã Serial nào trong kho
-                      </td>
-                    </tr>
-                    <tr v-for="(ser, idx) in filteredSerials" :key="ser.id">
-                      <td class="text-muted small">{{ idx + 1 }}</td>
-                      <td>
-                        <span class="font-monospace fw-bold text-primary">{{ ser.so_serial }}</span>
-                      </td>
-                      <td>
-                        <span class="font-monospace small text-muted">{{ ser.imei || '—' }}</span>
-                      </td>
-                      <td>
-                        <div class="fw-semibold text-dark small">{{ ser.ten_san_pham }}</div>
-                        <span class="text-muted" style="font-size: 11px;">{{ ser.ten_bien_the || ser.sku }}</span>
-                      </td>
-                      <td>
-                        <span :class="['badge', getSerialStatusBadge(ser.trang_thai)]">
-                          {{ getSerialStatusLabel(ser.trang_thai) }}
-                        </span>
-                      </td>
-                      <td class="small text-muted">{{ formatDate(ser.ngay_nhap_kho) }}</td>
-                      <td>
-                        <span v-if="ser.ma_don_hang" class="badge bg-secondary font-monospace">
-                          #{{ ser.ma_don_hang }}
-                        </span>
-                        <span v-else class="text-muted small">Chưa xuất</span>
-                      </td>
-                      <td>
-                        <span v-if="ser.han_bao_hanh" class="small text-success fw-bold">
-                          {{ formatDate(ser.han_bao_hanh) }}
-                        </span>
-                        <span v-else class="text-muted small">—</span>
-                      </td>
-                      <td class="text-center">
-                        <div class="btn-group btn-group-sm">
-                          <button
-                            v-if="ser.trang_thai === 'trong_kho'"
-                            class="btn btn-outline-danger btn-xs py-0 px-2"
-                            style="font-size: 11px;"
-                            @click="quickChangeSerialStatus(ser, 'loi')"
-                            title="Đánh dấu máy lỗi"
-                          >
-                            Báo lỗi
-                          </button>
-                          <button
-                            v-if="ser.trang_thai === 'loi'"
-                            class="btn btn-outline-success btn-xs py-0 px-2"
-                            style="font-size: 11px;"
-                            @click="quickChangeSerialStatus(ser, 'trong_kho')"
-                            title="Đã sửa chữa, đưa lại kho"
-                          >
-                            Hoàn kho
-                          </button>
-                          <button
-                            class="btn btn-outline-secondary btn-xs py-0 px-2"
-                            style="font-size: 11px;"
-                            @click="copySerial(ser.so_serial)"
-                            title="Sao chép serial"
-                          >
-                            <i class="bi bi-copy"></i>
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+              <router-link to="/admin/serial" class="btn btn-primary btn-sm px-3 text-nowrap shadow-sm">
+                <i class="bi bi-box-arrow-up-right me-1"></i> Mở Trang Kho Serial & IMEI
+              </router-link>
             </div>
           </div>
         </div>
       </div>
     </main>
 
-    <!-- Modal Nhập Lô Serial Mới (UC08) -->
-    <div
-      v-if="showBatchModal"
-      class="modal fade show d-block"
-      style="background: rgba(0,0,0,0.6);"
-    >
-      <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow-lg rounded-3">
-          <div class="modal-header bg-primary text-white py-3">
-            <h5 class="modal-title h6 fw-bold">
-              <i class="bi bi-plus-circle me-2"></i> NHẬP LÔ MÃ SERIAL & IMEI MỚI VÀO KHO (FIFO)
-            </h5>
-            <button type="button" class="btn-close btn-close-white" @click="showBatchModal = false"></button>
-          </div>
-          <div class="modal-body p-4">
-            <div class="mb-3">
-              <label class="form-label fw-bold small">Chọn Biến Thể Sản Phẩm Nhập Kho (*):</label>
-              <select v-model="batchForm.bien_the_id" class="form-select form-select-sm" @change="onBatchVariantChange">
-                <option value="">-- Chọn máy cần nhập lô Serial --</option>
-                <option v-for="v in variantsList" :key="v.id" :value="v.id">
-                  {{ v.ten_san_pham }} - {{ v.ten_bien_the }} (Tồn kho hiện tại: {{ v.so_luong_ton }})
-                </option>
-              </select>
-            </div>
-
-            <!-- Tabs chọn phương thức nhập -->
-            <ul class="nav nav-pills nav-fill mb-3">
-              <li class="nav-item">
-                <button
-                  class="nav-link btn-sm"
-                  :class="{ active: batchForm.mode === 'auto' }"
-                  @click="batchForm.mode = 'auto'"
-                >
-                  <i class="bi bi-magic me-1"></i> 1. Tự động sinh mã hàng loạt
-                </button>
-              </li>
-              <li class="nav-item">
-                <button
-                  class="nav-link btn-sm"
-                  :class="{ active: batchForm.mode === 'manual' }"
-                  @click="batchForm.mode = 'manual'"
-                >
-                  <i class="bi bi-textarea-t me-1"></i> 2. Dán danh sách mã thủ công
-                </button>
-              </li>
-            </ul>
-
-            <!-- Khung sinh mã tự động -->
-            <div v-if="batchForm.mode === 'auto'" class="p-3 bg-light rounded border mb-3">
-              <div class="row g-2">
-                <div class="col-md-5">
-                  <label class="small text-muted fw-semibold">Tiền tố mã (Prefix):</label>
-                  <input type="text" v-model="batchForm.prefix" class="form-control form-control-sm font-monospace" placeholder="VD: TM-ROG26-" />
-                </div>
-                <div class="col-md-4">
-                  <label class="small text-muted fw-semibold">Số bắt đầu:</label>
-                  <input type="number" v-model.number="batchForm.startNum" class="form-control form-control-sm" min="1" />
-                </div>
-                <div class="col-md-3">
-                  <label class="small text-muted fw-semibold">Số lượng máy:</label>
-                  <input type="number" v-model.number="batchForm.count" class="form-control form-control-sm" min="1" max="100" />
-                </div>
-              </div>
-              <div class="mt-2 small text-muted">
-                Mẫu mã sinh ra: <span class="badge bg-secondary font-monospace">{{ batchForm.prefix }}{{ String(batchForm.startNum).padStart(4, '0') }}</span> đến <span class="badge bg-secondary font-monospace">{{ batchForm.prefix }}{{ String(batchForm.startNum + batchForm.count - 1).padStart(4, '0') }}</span>
-              </div>
-            </div>
-
-            <!-- Khung dán danh sách thủ công -->
-            <div v-else class="mb-3">
-              <label class="small text-muted fw-semibold">Nhập hoặc quét mã vạch (Mỗi dòng một mã Serial):</label>
-              <textarea
-                v-model="batchForm.manualSerials"
-                rows="5"
-                placeholder="TM-ROG-2026-001&#10;TM-ROG-2026-002&#10;TM-ROG-2026-003"
-                class="form-control form-control-sm font-monospace"
-              ></textarea>
-            </div>
-
-            <!-- Ghi chú nhập lô -->
-            <div class="mb-3">
-              <label class="form-label small fw-semibold">Ghi chú đợt nhập:</label>
-              <input type="text" v-model="batchForm.ghi_chu" placeholder="Ví dụ: Nhập kho chính hãng đợt 2 ASUS Việt Nam" class="form-control form-control-sm" />
-            </div>
-
-            <div v-if="batchError" class="alert alert-danger py-2 small">
-              <i class="bi bi-exclamation-triangle-fill me-1"></i> {{ batchError }}
-            </div>
-          </div>
-          <div class="modal-footer bg-light py-2">
-            <button type="button" class="btn btn-secondary btn-sm" @click="showBatchModal = false" :disabled="isSubmittingBatch">Hủy</button>
-            <button type="button" class="btn btn-primary btn-sm" @click="submitBatchImport" :disabled="isSubmittingBatch">
-              <span v-if="isSubmittingBatch" class="spinner-border spinner-border-sm me-1"></span>
-              <i v-else class="bi bi-check-circle me-1"></i>
-              Xác nhận nhập kho
-            </button>
-          </div>
-        </div>
-      </div>
-    </div>
 
     <!-- Modal Xử Lý / Cập Nhật Trạng Thái Đơn Hàng & GÁN SERIAL (UC09) -->
     <div
@@ -1102,27 +847,6 @@ export default {
         trang_thai_thanh_toan: 'chua_thanh_toan'
       },
 
-      // Kho Serial (UC08)
-      serialsData: [],
-      filteredSerials: [],
-      serialStats: { total: 0, trong_kho: 0, da_ban: 0, giu_cho: 0, loi: 0 },
-      variantsList: [],
-      serialFilterStatus: 'ALL',
-      serialSearch: '',
-      isLoadingSerials: false,
-      showBatchModal: false,
-      batchForm: {
-        bien_the_id: '',
-        mode: 'auto',
-        prefix: 'TM-ROG26-',
-        startNum: 101,
-        count: 5,
-        manualSerials: '',
-        ghi_chu: ''
-      },
-      batchError: '',
-      isSubmittingBatch: false,
-
       // Gán Serial Đơn Hàng (UC09)
       availableSerialsMap: {},
       selectedSerialsMap: {}, // { [itemId]: [serialId1, ...] }
@@ -1173,7 +897,6 @@ export default {
   },
   mounted() {
     this.loadData();
-    this.loadSerialData();
   },
   methods: {
     // Gọi API lấy toàn bộ dữ liệu thật từ Backend Laravel
@@ -1283,171 +1006,6 @@ export default {
       }
     },
 
-    // ==========================================
-    // CÁC HÀM QUẢN TRỊ KHO SERIAL & IMEI (UC08)
-    // ==========================================
-    async loadSerialData() {
-      this.isLoadingSerials = true;
-      try {
-        const res = await axios.get(apiUrl('admin/serial/get-data'));
-        if (res.data && res.data.status) {
-          this.serialsData = res.data.data || [];
-          this.serialStats = res.data.stats || { total: 0, trong_kho: 0, da_ban: 0, giu_cho: 0, loi: 0 };
-          this.variantsList = res.data.variants || [];
-          this.filterSerialsList();
-        }
-      } catch (err) {
-        console.error('Lỗi khi tải kho serial:', err);
-      } finally {
-        this.isLoadingSerials = false;
-      }
-    },
-
-    filterSerialsList() {
-      let list = this.serialsData;
-      if (this.serialFilterStatus !== 'ALL') {
-        list = list.filter(s => s.trang_thai === this.serialFilterStatus);
-      }
-      if (this.serialSearch.trim() !== '') {
-        const q = this.serialSearch.toLowerCase();
-        list = list.filter(s => {
-          const serial = String(s.so_serial || '').toLowerCase();
-          const imei = String(s.imei || '').toLowerCase();
-          const sp = String(s.ten_san_pham || '').toLowerCase();
-          const bt = String(s.ten_bien_the || '').toLowerCase();
-          const don = String(s.ma_don_hang || '').toLowerCase();
-          return serial.includes(q) || imei.includes(q) || sp.includes(q) || bt.includes(q) || don.includes(q);
-        });
-      }
-      this.filteredSerials = list;
-    },
-
-    openBatchImportModal() {
-      this.batchForm = {
-        bien_the_id: this.variantsList.length > 0 ? this.variantsList[0].id : '',
-        mode: 'auto',
-        prefix: 'TM-ROG26-',
-        startNum: 101,
-        count: 5,
-        manualSerials: '',
-        ghi_chu: ''
-      };
-      if (this.batchForm.bien_the_id) {
-        this.onBatchVariantChange();
-      }
-      this.batchError = '';
-      this.showBatchModal = true;
-    },
-
-    onBatchVariantChange() {
-      const v = this.variantsList.find(x => x.id === this.batchForm.bien_the_id);
-      if (v) {
-        const prefixClean = (v.sku || 'TECH')
-          .replace(/[^A-Za-z0-9]/g, '')
-          .toUpperCase()
-          .slice(0, 8);
-        this.batchForm.prefix = `TM-${prefixClean}-`;
-      }
-    },
-
-    async submitBatchImport() {
-      this.batchError = '';
-      if (!this.batchForm.bien_the_id) {
-        this.batchError = 'Vui lòng chọn biến thể sản phẩm!';
-        return;
-      }
-      let serialsList = [];
-      if (this.batchForm.mode === 'auto') {
-        const count = parseInt(this.batchForm.count) || 0;
-        const start = parseInt(this.batchForm.startNum) || 1;
-        const prefix = (this.batchForm.prefix || 'TM-').trim();
-        if (count <= 0 || count > 100) {
-          this.batchError = 'Số lượng máy nhập phải từ 1 đến 100!';
-          return;
-        }
-        for (let i = 0; i < count; i++) {
-          const numStr = String(start + i).padStart(4, '0');
-          serialsList.push(`${prefix}${numStr}`);
-        }
-      } else {
-        serialsList = (this.batchForm.manualSerials || '')
-          .split('\n')
-          .map(s => s.trim())
-          .filter(s => s.length > 0);
-        if (serialsList.length === 0) {
-          this.batchError = 'Vui lòng nhập ít nhất 1 mã serial!';
-          return;
-        }
-      }
-
-      this.isSubmittingBatch = true;
-      try {
-        const res = await axios.post(apiUrl('admin/serial/nhap-lo'), {
-          bien_the_id: this.batchForm.bien_the_id,
-          serials: serialsList,
-          ghi_chu: this.batchForm.ghi_chu
-        });
-        if (res.data && res.data.status) {
-          this.showAlert(res.data.message || `Đã nhập thành công ${res.data.count} mã Serial vào kho!`, 'success');
-          this.showBatchModal = false;
-          await this.loadSerialData();
-          await this.loadData();
-        } else {
-          this.batchError = res.data.message || 'Lỗi khi nhập lô serial!';
-        }
-      } catch (err) {
-        this.batchError = err?.response?.data?.message || 'Lỗi kết nối máy chủ khi nhập lô serial!';
-      } finally {
-        this.isSubmittingBatch = false;
-      }
-    },
-
-    async quickChangeSerialStatus(ser, newStatus) {
-      try {
-        const res = await axios.post(apiUrl('admin/serial/change-status'), {
-          serial_id: ser.id,
-          trang_thai: newStatus
-        });
-        if (res.data && res.data.status) {
-          this.showAlert(`Đã chuyển trạng thái mã ${ser.so_serial} sang "${newStatus}"!`, 'success');
-          await this.loadSerialData();
-        } else {
-          this.showAlert(res.data.message || 'Không thể đổi trạng thái', 'danger');
-        }
-      } catch (err) {
-        this.showAlert(err?.response?.data?.message || 'Lỗi khi đổi trạng thái serial', 'danger');
-      }
-    },
-
-    copySerial(code) {
-      if (!code) return;
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(code);
-        this.showAlert(`Đã copy mã Serial: ${code}`, 'info');
-      } else {
-        this.showAlert(`Mã Serial: ${code}`, 'info');
-      }
-    },
-
-    getSerialStatusBadge(st) {
-      const map = {
-        trong_kho: 'bg-success',
-        da_ban: 'bg-primary',
-        giu_cho: 'bg-warning text-dark',
-        loi: 'bg-danger'
-      };
-      return map[st] || 'bg-secondary';
-    },
-
-    getSerialStatusLabel(st) {
-      const map = {
-        trong_kho: 'Trong kho (Sẵn sàng)',
-        da_ban: 'Đã xuất bán',
-        giu_cho: 'Đang giữ chỗ',
-        loi: 'Máy lỗi / RMA'
-      };
-      return map[st] || st;
-    },
 
     // ==========================================
     // CÁC HÀM GÁN SERIAL ĐƠN HÀNG XUẤT KHO (UC09)
