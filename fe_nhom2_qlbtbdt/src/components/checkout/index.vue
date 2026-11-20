@@ -602,11 +602,11 @@
             </div>
           </div>
           <div class="modal-footer bg-light p-3 border-0 d-flex justify-content-center">
-            <router-link to="/" class="btn btn-primary px-4 py-2">
-              <i class="bi bi-house-door-fill me-1"></i> Về Trang chủ
+            <router-link to="/my-orders" class="btn btn-primary px-4 py-2">
+              <i class="bi bi-bag-check-fill me-1"></i> Xem đơn hàng của tôi
             </router-link>
-            <router-link to="/cart" class="btn btn-outline-secondary px-4 py-2">
-              <i class="bi bi-cart3 me-1"></i> Xem Giỏ hàng
+            <router-link to="/" class="btn btn-outline-secondary px-4 py-2">
+              <i class="bi bi-house-door-fill me-1"></i> Về Trang chủ
             </router-link>
           </div>
         </div>

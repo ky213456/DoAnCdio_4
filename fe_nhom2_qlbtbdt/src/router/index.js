@@ -31,6 +31,12 @@ const clientRoutes = [
     meta: { title: 'Đặt Hàng & Thanh Toán - TechMart AI', layout: 'client' }
   },
   {
+    path: '/my-orders',
+    name: 'client-my-orders',
+    component: () => import('@/components/orders/index.vue'),
+    meta: { title: 'Lịch Sử Đơn Hàng Của Tôi - TechMart AI', layout: 'client' }
+  },
+  {
     path: '/product/:id',
     name: 'client-product-detail',
     // Sau này liên kết với view Chi tiết của Phạm Tiến Ninh

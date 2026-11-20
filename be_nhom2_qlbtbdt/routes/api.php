@@ -113,6 +113,7 @@ Route::prefix('')->group(function () {
         //Đơn hàng
         Route::post('don-hang/checkout', [DonHangController::class, 'checkout']);
         Route::get('don-hang/danh-sach', [DonHangController::class, 'getDonHangClient']);
+        Route::post('don-hang/huy-don', [DonHangController::class, 'huyDonHangClient']);
 
         //Bảo hành
         Route::get('tra-cuu-bao-hanh', [BaoHanhController::class, 'traCuu']);

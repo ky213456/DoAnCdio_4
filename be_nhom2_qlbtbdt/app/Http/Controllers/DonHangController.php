@@ -419,16 +419,141 @@ class DonHangController extends Controller
 
     public function getDonHangClient(Request $request)
     {
-        $userId = $request->get('user_id');
+        $userId    = $request->get('user_id') ?: $request->get('nguoi_dung_id');
+        $phone     = trim((string) $request->get('phone', ''));
+        $searchKey = trim((string) $request->get('search', ''));
+        $status    = $request->get('status');
 
-        $data = DonHang::where('nguoi_dung_id', $userId)
-            ->orderBy('id', 'desc')
-            ->get();
+        $query = DonHang::query();
+
+        // 1. Lọc theo Người dùng hoặc Số điện thoại
+        if ($userId) {
+            $query->where(function ($q) use ($userId, $phone) {
+                $q->where('nguoi_dung_id', $userId);
+                if ($phone) {
+                    $q->orWhere('so_dien_thoai_nhan', $phone);
+                }
+            });
+        } elseif ($phone) {
+            $query->where('so_dien_thoai_nhan', $phone);
+        }
+
+        // 2. Lọc theo trạng thái đơn hàng (nếu có chọn tab)
+        if ($status && $status !== 'all') {
+            $query->where('trang_thai_don_hang', $status);
+        }
+
+        // 3. Tìm kiếm theo mã đơn hàng hoặc tên người nhận
+        if ($searchKey) {
+            $query->where(function ($q) use ($searchKey) {
+                $q->where('ma_don_hang', 'LIKE', "%{$searchKey}%")
+                  ->orWhere('ho_ten_nguoi_nhan', 'LIKE', "%{$searchKey}%")
+                  ->orWhere('so_dien_thoai_nhan', 'LIKE', "%{$searchKey}%");
+            });
+        }
+
+        $orders = $query->with([
+            'items.variant.product',
+            'payments' => function ($q) {
+                $q->orderBy('id', 'desc');
+            },
+            'serials'
+        ])
+        ->orderBy('id', 'desc')
+        ->get();
+
+        $formatted = $orders->map(function ($order) {
+            $items = $order->items->map(function ($item) {
+                $image = null;
+                if ($item->variant) {
+                    $image = $item->variant->hinh_anh ?: ($item->variant->product ? ($item->variant->product->anh_chinh ?: $item->variant->product->hinh_anh) : null);
+                }
+                return [
+                    'id'               => $item->id,
+                    'bien_the_id'      => $item->bien_the_id,
+                    'ten_san_pham'     => $item->ten_san_pham,
+                    'ten_bien_the'     => $item->ten_bien_the,
+                    'so_luong'         => (int) $item->so_luong,
+                    'don_gia'          => (float) $item->don_gia,
+                    'thanh_tien'       => (float) $item->thanh_tien,
+                    'danh_sach_serial' => $item->danh_sach_serial ?: [],
+                    'hinh_anh'         => $image ?: '/laptop-placeholder.png',
+                ];
+            });
+
+            // Danh sách Serial/IMEI đã gán cho đơn hàng
+            $serials = $order->serials ? $order->serials->map(function ($s) {
+                return [
+                    'so_serial'     => $s->so_serial,
+                    'imei'          => $s->imei,
+                    'han_bao_hanh'  => $s->han_bao_hanh ? (is_string($s->han_bao_hanh) ? $s->han_bao_hanh : $s->han_bao_hanh->format('d/m/Y')) : null,
+                    'ngay_xuat_kho' => $s->ngay_xuat_kho ? (is_string($s->ngay_xuat_kho) ? $s->ngay_xuat_kho : $s->ngay_xuat_kho->format('d/m/Y')) : null,
+                ];
+            }) : [];
+
+            return [
+                'id'                     => $order->id,
+                'ma_don_hang'            => $order->ma_don_hang ?: ('DH' . $order->id),
+                'ngay_dat'               => $order->ngay_dat ? $order->ngay_dat->format('d/m/Y H:i') : ($order->created_at ? $order->created_at->format('d/m/Y H:i') : ''),
+                'ho_ten_nguoi_nhan'      => $order->ho_ten_nguoi_nhan,
+                'so_dien_thoai_nhan'     => $order->so_dien_thoai_nhan,
+                'dia_chi_giao_hang'      => $order->dia_chi_giao_hang,
+                'ghi_chu'                => $order->ghi_chu,
+                'tong_tien_hang'         => (float) $order->tong_tien_hang,
+                'so_tien_giam'           => (float) $order->so_tien_giam,
+                'phi_van_chuyen'         => (float) $order->phi_van_chuyen,
+                'tong_thanh_toan'        => (float) $order->tong_thanh_toan,
+                'phuong_thuc_thanh_toan' => $order->phuong_thuc_thanh_toan,
+                'trang_thai_thanh_toan'  => $order->trang_thai_thanh_toan,
+                'trang_thai_don_hang'    => $order->trang_thai_don_hang,
+                'items'                  => $items,
+                'serials'                => $serials,
+                'payments'               => $order->payments,
+                'can_cancel'             => in_array($order->trang_thai_don_hang, ['cho_xac_nhan', 'pending']),
+            ];
+        });
 
         return response()->json([
             'status'  => true,
             'message' => 'Lấy danh sách đơn hàng client thành công',
-            'data'    => $data,
+            'data'    => $formatted,
+        ]);
+    }
+
+    public function huyDonHangClient(Request $request)
+    {
+        $id     = $request->input('id');
+        $lyDo   = trim((string) $request->input('ly_do', 'Khách hàng yêu cầu hủy đơn'));
+        $userId = $request->input('user_id');
+
+        $query = DonHang::where('id', $id);
+        if ($userId) {
+            $query->where('nguoi_dung_id', $userId);
+        }
+        $donHang = $query->first();
+
+        if (!$donHang) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Không tìm thấy đơn hàng cần hủy.',
+            ], 404);
+        }
+
+        if (!in_array($donHang->trang_thai_don_hang, ['cho_xac_nhan', 'pending'])) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Đơn hàng đã được nhân viên tiếp nhận hoặc đang giao, không thể tự hủy. Vui lòng liên hệ tổng đài 1900.6789 để được hỗ trợ!',
+            ], 400);
+        }
+
+        $donHang->trang_thai_don_hang = 'da_huy';
+        $donHang->ghi_chu = trim(($donHang->ghi_chu ? $donHang->ghi_chu . ' | ' : '') . '[Khách hủy]: ' . $lyDo);
+        $donHang->save();
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Hủy đơn hàng #' . ($donHang->ma_don_hang ?: $donHang->id) . ' thành công!',
+            'data'    => $donHang,
         ]);
     }
 }
