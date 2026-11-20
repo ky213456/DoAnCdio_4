@@ -828,19 +828,37 @@ export default {
       const token = localStorage.getItem('customer_token');
       if (!token) {
         if (confirm('Quý khách cần đăng nhập tài khoản TechMart để tiến hành thanh toán đơn hàng. Bạn có muốn chuyển tới trang Đăng nhập ngay không?')) {
-          this.$router.push('/login?redirect=/cart');
+          this.$router.push('/login?redirect=/checkout');
         }
         return;
       }
 
-      this.checkoutError = '';
-      this.codSuccessOrder = null;
-      if (this.currentUser) {
-        this.checkoutForm.ho_ten_nguoi_nhan = this.checkoutForm.ho_ten_nguoi_nhan || this.currentUser.ho_ten || this.currentUser.name || '';
-        this.checkoutForm.so_dien_thoai_nhan = this.checkoutForm.so_dien_thoai_nhan || this.currentUser.so_dien_thoai || '';
-        this.checkoutForm.dia_chi_giao_hang = this.checkoutForm.dia_chi_giao_hang || this.currentUser.dia_chi || '';
+      // Lưu trữ danh sách sản phẩm được chọn & voucher vào localStorage để trang Checkout sử dụng
+      const selectedItems = this.cartItems
+        .filter(i => i.selected && !i.isGift)
+        .map(i => ({
+          gio_hang_id: i.gio_hang_id || i.id || null,
+          bien_the_id: i.bien_the_id || null,
+          ten_san_pham: i.name || i.ten_san_pham,
+          ten_bien_the: i.ten_bien_the || i.specs || 'Tiêu chuẩn',
+          quantity: i.quantity || 1,
+          price: i.price || 0,
+          image: i.image || i.hinh_anh || ''
+        }));
+
+      localStorage.setItem('techmart_checkout_items', JSON.stringify(selectedItems));
+
+      if (this.isVoucherApplied && this.appliedVoucherName) {
+        localStorage.setItem('techmart_checkout_voucher', JSON.stringify({
+          code: this.appliedVoucherName,
+          discount: this.voucherDiscount
+        }));
+      } else {
+        localStorage.removeItem('techmart_checkout_voucher');
       }
-      this.showCheckoutModal = true;
+
+      // Chuyển hướng người dùng sang trang Đặt hàng & Bản đồ (/checkout)
+      this.$router.push('/checkout');
     },
     closeCheckoutModal() {
       if (this.isSubmittingOrder) return;
