@@ -30,6 +30,7 @@ class DonHangController extends Controller
                 'ma_giam_gia.ma_code as ma_voucher',
                 'ma_giam_gia.ma_code'
             )
+            ->with(['items.variant.product', 'serials'])
             ->orderBy('don_hang.id', 'desc')
             ->get();
 

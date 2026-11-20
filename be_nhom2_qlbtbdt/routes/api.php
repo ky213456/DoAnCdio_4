@@ -8,6 +8,7 @@ use App\Http\Controllers\GioHangController;
 use App\Http\Controllers\KhachHangController;
 use App\Http\Controllers\NhanVienController;
 use App\Http\Controllers\SanPhamController;
+use App\Http\Controllers\SerialSanPhamController;
 use App\Http\Controllers\ThanhToanController;
 use App\Http\Controllers\ThongKeController;
 use App\Http\Controllers\ThuongHieuController;
@@ -71,6 +72,13 @@ Route::prefix('')->group(function () {
         //Đơn hàng
         Route::get('don-hang/get-data', [DonHangController::class, 'getData']);
         Route::post('don-hang/change-status', [DonHangController::class, 'changeStatus']);
+        Route::post('don-hang/gan-serial', [SerialSanPhamController::class, 'ganSerialDonHang']);
+
+        //Kho Serial/IMEI FIFO (UC08, UC09)
+        Route::get('serial/get-data', [SerialSanPhamController::class, 'getData']);
+        Route::post('serial/nhap-lo', [SerialSanPhamController::class, 'nhapLo']);
+        Route::post('serial/change-status', [SerialSanPhamController::class, 'changeStatus']);
+        Route::get('serial/available-by-variant/{variantId}', [SerialSanPhamController::class, 'getAvailableByVariant']);
 
         //Thống kê
         Route::get('thong-ke/kpi-dashboard', [ThongKeController::class, 'kpiDashboard']);
