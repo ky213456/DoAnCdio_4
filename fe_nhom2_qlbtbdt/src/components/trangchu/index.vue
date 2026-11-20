@@ -578,7 +578,7 @@
             <span v-if="item.gia_khuyen_mai" class="price-original ms-2">{{ formatCurrency(item.gia_goc) }}</span>
           </div>
           <div class="card-btn-group">
-            <button class="btn-card-detail" @click="$router.push('/cart')"><i class="bi bi-eye me-1"></i>Chi tiết</button>
+            <button class="btn-card-detail" @click="muaNgay(item)"><i class="bi bi-lightning-charge-fill me-1 text-warning"></i>Mua ngay</button>
             <button class="btn-card-add" @click="themVaoGio(item)" :disabled="item.isAdding">
               <i class="bi bi-arrow-repeat spin me-1" v-if="item.isAdding"></i>
               <i class="bi bi-cart-plus me-1" v-else></i>
@@ -1543,6 +1543,32 @@ export default {
           item.isAdding = false;
         }, 350);
       }
+    },
+    async muaNgay(item) {
+      if (!item) return;
+
+      const token = localStorage.getItem('customer_token');
+      if (!token) {
+        this.openAuthModal('login', () => this.muaNgay(item));
+        return;
+      }
+
+      const giaSanPham = (item.gia_khuyen_mai && Number(item.gia_khuyen_mai) > 0)
+        ? Number(item.gia_khuyen_mai)
+        : Number(item.gia_goc || item.gia_ban || 0);
+
+      const checkoutItem = {
+        gio_hang_id: null,
+        bien_the_id: item.bien_the_id || null,
+        ten_san_pham: item.ten_san_pham,
+        ten_bien_the: 'Tiêu chuẩn',
+        quantity: 1,
+        price: giaSanPham,
+        image: item.anh_chinh || item.hinh_anh || ''
+      };
+
+      localStorage.setItem('techmart_checkout_items', JSON.stringify([checkoutItem]));
+      this.$router.push('/checkout');
     },
     triggerCartBounce() {
       this.isCartBouncing = true;
