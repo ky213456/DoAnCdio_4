@@ -29,9 +29,10 @@
         <a href="#san-pham" class="menu-item" @click.prevent="scrollTo('top-products')">
           <i class="bi bi-laptop me-2"></i> Quản Lý Sản Phẩm
         </a>
-        <a href="#kho-serial" class="menu-item" @click.prevent="alertFeature('Quản lý Kho Serial FIFO')">
-          <i class="bi bi-upc-scan me-2"></i> Kho Serial/IMEI FIFO
-        </a>
+        <router-link to="/admin/serial" class="menu-item">
+          <i class="bi bi-upc-scan me-2 text-success"></i> Kho Serial & IMEI
+          <span class="badge bg-primary-subtle text-primary border border-primary-subtle ms-auto small">Page riêng</span>
+        </router-link>
         <a href="#voucher" class="menu-item" @click.prevent="alertFeature('Quản lý Voucher Khuyến Mãi')">
           <i class="bi bi-ticket-perforated me-2"></i> Quản Lý Voucher
         </a>
@@ -569,23 +570,42 @@
               </ul>
             </div>
           </div>
+
+          <!-- Thẻ liên kết nhanh tới Phân hệ Kho Serial & IMEI (UC08) -->
+          <div class="col-12 mb-3">
+            <div class="card border-0 shadow-sm p-4 bg-white d-flex flex-row justify-content-between align-items-center">
+              <div class="d-flex align-items-center">
+                <div class="bg-primary text-white p-3 rounded-3 me-3">
+                  <i class="bi bi-upc-scan fs-3"></i>
+                </div>
+                <div>
+                  <h6 class="fw-bold text-dark mb-1 fs-6">Phân Hệ Quản Trị Kho Serial & IMEI Từng Chiếc Máy (UC08 - FIFO)</h6>
+                  <p class="text-muted small mb-0">Đã được xây dựng thành trang quản trị chuyên sâu độc lập: quản lý định danh vật lý độc bản, nhập lô tự động, và theo dõi bảo hành điện tử.</p>
+                </div>
+              </div>
+              <router-link to="/admin/serial" class="btn btn-primary btn-sm px-3 text-nowrap shadow-sm">
+                <i class="bi bi-box-arrow-up-right me-1"></i> Mở Trang Kho Serial & IMEI
+              </router-link>
+            </div>
+          </div>
         </div>
       </div>
     </main>
 
-    <!-- Modal Xử Lý / Cập Nhật Trạng Thái Đơn Hàng -->
+
+    <!-- Modal Xử Lý / Cập Nhật Trạng Thái Đơn Hàng & GÁN SERIAL (UC09) -->
     <div
       v-if="selectedOrder"
       class="modal fade show d-block"
       tabindex="-1"
-      style="background-color: rgba(0,0,0,0.5);"
+      style="background-color: rgba(0,0,0,0.65);"
     >
       <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 shadow">
-          <div class="modal-header bg-dark text-white">
-            <h5 class="modal-title h6">
+        <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+          <div class="modal-header bg-dark text-white py-3">
+            <h5 class="modal-title h6 fw-bold">
               <i class="bi bi-pencil-square me-2 text-warning"></i>
-              Chi Tiết & Cập Nhật Đơn Hàng: #{{ selectedOrder.ma_don_hang || selectedOrder.id }}
+              Xử Lý Đơn Hàng & Gán Mã Serial/IMEI Xuất Kho: #{{ selectedOrder.ma_don_hang || selectedOrder.id }}
             </h5>
             <button type="button" class="btn-close btn-close-white" @click="selectedOrder = null"></button>
           </div>
@@ -610,6 +630,95 @@
                   <p class="mb-1 small"><strong>Phí vận chuyển:</strong> {{ formatCurrency(selectedOrder.phi_van_chuyen || 0) }}</p>
                   <p class="mb-0 small fw-bold text-danger"><strong>Thực thanh toán:</strong> {{ formatCurrency(selectedOrder.tong_thanh_toan) }}</p>
                 </div>
+              </div>
+            </div>
+
+            <!-- BẢNG MẶT HÀNG TRONG ĐƠN & BỘ GÁN MÃ SERIAL VẬT LÝ (UC09) -->
+            <div class="card p-3 border mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold text-dark mb-0">
+                  <i class="bi bi-upc-scan text-primary me-1"></i>
+                  Danh Sách Thiết Bị Cần Xuất Kho & Gán Mã Serial/IMEI
+                </h6>
+                <span class="badge bg-info-subtle text-info small">Định danh vật lý độc bản</span>
+              </div>
+
+              <div v-if="!selectedOrder.items || selectedOrder.items.length === 0" class="text-muted small py-2">
+                Đang tải chi tiết thiết bị trong đơn...
+              </div>
+
+              <div v-else class="table-responsive">
+                <table class="table table-sm table-bordered align-middle mb-0">
+                  <thead class="table-light small">
+                    <tr>
+                      <th>Sản phẩm / Cấu hình</th>
+                      <th class="text-center" style="width: 70px;">SL</th>
+                      <th>Mã Serial Vật Lý Gán Cho Máy</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr v-for="item in selectedOrder.items" :key="item.id">
+                      <td>
+                        <strong class="small text-dark">{{ item.ten_san_pham }}</strong>
+                        <div class="text-muted" style="font-size: 11px;">Phân loại: {{ item.ten_bien_the || 'Tiêu chuẩn' }}</div>
+                      </td>
+                      <td class="text-center fw-bold">{{ item.so_luong }}</td>
+                      <td>
+                        <!-- Trường hợp 1: Nếu đơn ĐÃ ĐƯỢC GÁN SERIAL -->
+                        <div v-if="item.danh_sach_serial && item.danh_sach_serial.length > 0" class="d-flex flex-wrap gap-1">
+                          <span
+                            v-for="(code, cIdx) in item.danh_sach_serial"
+                            :key="cIdx"
+                            class="badge bg-success font-monospace"
+                          >
+                            <i class="bi bi-check2-circle me-1"></i>{{ code }}
+                          </span>
+                        </div>
+
+                        <!-- Trường hợp 2: Nếu CHƯA GÁN SERIAL -> Hiện bộ chọn từ kho -->
+                        <div v-else>
+                          <div class="d-flex align-items-center gap-2 mb-1">
+                            <span class="small text-danger fw-semibold">
+                              Cần chọn {{ item.so_luong }} mã serial từ kho:
+                            </span>
+                            <button
+                              class="btn btn-outline-primary btn-xs py-0 px-2"
+                              style="font-size: 11px;"
+                              @click="autoPickFifo(item)"
+                            >
+                              <i class="bi bi-magic me-1"></i> Chọn tự động FIFO
+                            </button>
+                          </div>
+
+                          <div v-if="availableSerialsMap[item.bien_the_id] && availableSerialsMap[item.bien_the_id].length > 0">
+                            <div class="d-flex flex-wrap gap-2">
+                              <label
+                                v-for="ser in availableSerialsMap[item.bien_the_id]"
+                                :key="ser.id"
+                                class="badge border text-dark font-monospace p-2 cursor-pointer"
+                                :class="{ 'bg-primary text-white border-primary': isSerialSelected(item.id, ser.id) }"
+                                style="cursor: pointer;"
+                                @click="toggleSerialSelection(item.id, ser.id, item.so_luong)"
+                              >
+                                <input
+                                  type="checkbox"
+                                  class="form-check-input me-1"
+                                  :checked="isSerialSelected(item.id, ser.id)"
+                                  @click.stop
+                                  @change="toggleSerialSelection(item.id, ser.id, item.so_luong)"
+                                />
+                                {{ ser.so_serial }}
+                              </label>
+                            </div>
+                          </div>
+                          <div v-else class="text-danger small">
+                            <i class="bi bi-exclamation-circle me-1"></i> Kho biến thể này hiện không còn mã Serial 'trong_kho'. Vui lòng nhập thêm vào kho!
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
             </div>
 
@@ -643,17 +752,30 @@
             </div>
           </div>
 
-          <div class="modal-footer bg-light">
+          <div class="modal-footer bg-light d-flex justify-content-between">
             <button type="button" class="btn btn-secondary btn-sm" @click="selectedOrder = null">Đóng</button>
-            <button
-              type="button"
-              class="btn btn-primary btn-sm"
-              @click="submitUpdateStatus()"
-              :disabled="isUpdating"
-            >
-              <i class="bi bi-save me-1"></i>
-              {{ isUpdating ? 'Đang lưu...' : 'Lưu Thay Đổi' }}
-            </button>
+            <div class="d-flex gap-2">
+              <button
+                v-if="hasUnassignedItems(selectedOrder)"
+                type="button"
+                class="btn btn-success btn-sm"
+                @click="submitAssignSerialsAndFulfill()"
+                :disabled="isAssigningSerial"
+              >
+                <span v-if="isAssigningSerial" class="spinner-border spinner-border-sm me-1"></span>
+                <i v-else class="bi bi-box-arrow-up-right me-1"></i>
+                Gán Serial & Xuất Kho Giao Hàng
+              </button>
+              <button
+                type="button"
+                class="btn btn-primary btn-sm"
+                @click="submitUpdateStatus()"
+                :disabled="isUpdating"
+              >
+                <i class="bi bi-save me-1"></i>
+                {{ isUpdating ? 'Đang lưu...' : 'Lưu Thay Đổi' }}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -723,7 +845,12 @@ export default {
         id: null,
         trang_thai_don_hang: 'cho_xac_nhan',
         trang_thai_thanh_toan: 'chua_thanh_toan'
-      }
+      },
+
+      // Gán Serial Đơn Hàng (UC09)
+      availableSerialsMap: {},
+      selectedSerialsMap: {}, // { [itemId]: [serialId1, ...] }
+      isAssigningSerial: false
     }
   },
   computed: {
@@ -849,7 +976,7 @@ export default {
       }
     },
 
-    // Mở Modal chi tiết đơn hàng
+    // Mở Modal chi tiết đơn hàng & Tải Serial khả dụng cho từng thiết bị
     openOrderModal(order) {
       this.selectedOrder = order;
       this.editForm = {
@@ -857,6 +984,118 @@ export default {
         trang_thai_don_hang: order.trang_thai_don_hang || 'cho_xac_nhan',
         trang_thai_thanh_toan: order.trang_thai_thanh_toan || 'chua_thanh_toan'
       };
+      this.selectedSerialsMap = {};
+      this.availableSerialsMap = {};
+
+      if (order && order.items && order.items.length > 0) {
+        order.items.forEach(async (it) => {
+          if (it.bien_the_id && (!it.danh_sach_serial || it.danh_sach_serial.length === 0)) {
+            try {
+              const res = await axios.get(apiUrl(`admin/serial/available-by-variant/${it.bien_the_id}`));
+              if (res && res.data && res.data.status) {
+                this.availableSerialsMap = {
+                  ...this.availableSerialsMap,
+                  [it.bien_the_id]: res.data.data || []
+                };
+              }
+            } catch (err) {
+              console.error('Lỗi khi tải mã serial khả dụng:', err);
+            }
+          }
+        });
+      }
+    },
+
+
+    // ==========================================
+    // CÁC HÀM GÁN SERIAL ĐƠN HÀNG XUẤT KHO (UC09)
+    // ==========================================
+    isSerialSelected(itemId, serialId) {
+      const list = this.selectedSerialsMap[itemId] || [];
+      return list.includes(serialId);
+    },
+
+    toggleSerialSelection(itemId, serialId, maxQty) {
+      const current = [...(this.selectedSerialsMap[itemId] || [])];
+      const idx = current.indexOf(serialId);
+      if (idx > -1) {
+        current.splice(idx, 1);
+      } else {
+        if (current.length >= maxQty) {
+          this.showAlert(`Chỉ cần chọn đúng ${maxQty} mã serial cho sản phẩm này!`, 'warning');
+          return;
+        }
+        current.push(serialId);
+      }
+      this.selectedSerialsMap = {
+        ...this.selectedSerialsMap,
+        [itemId]: current
+      };
+    },
+
+    autoPickFifo(item) {
+      const available = this.availableSerialsMap[item.bien_the_id] || [];
+      if (available.length < item.so_luong) {
+        this.showAlert(`Kho chỉ còn ${available.length} mã khả dụng, không đủ ${item.so_luong} mã để chọn tự động!`, 'warning');
+        return;
+      }
+      // FIFO: Chọn `item.so_luong` serial đầu tiên (đã được sắp xếp id ASC)
+      const picked = available.slice(0, item.so_luong).map(s => s.id);
+      this.selectedSerialsMap = {
+        ...this.selectedSerialsMap,
+        [item.id]: picked
+      };
+      this.showAlert(`Đã tự động chọn ${picked.length} mã Serial FIFO cho sản phẩm!`, 'info');
+    },
+
+    hasUnassignedItems(order) {
+      if (!order || !order.items || order.items.length === 0) return false;
+      return order.items.some(it => !it.danh_sach_serial || it.danh_sach_serial.length === 0);
+    },
+
+    async submitAssignSerialsAndFulfill() {
+      if (!this.selectedOrder) return;
+      const items = this.selectedOrder.items || [];
+      const assignments = [];
+
+      for (const it of items) {
+        if (!it.danh_sach_serial || it.danh_sach_serial.length === 0) {
+          const selected = this.selectedSerialsMap[it.id] || [];
+          if (selected.length !== it.so_luong) {
+            this.showAlert(`Vui lòng chọn đủ ${it.so_luong} mã serial cho "${it.ten_san_pham}"! (Hiện chọn: ${selected.length})`, 'warning');
+            return;
+          }
+          assignments.push({
+            chi_tiet_don_hang_id: it.id,
+            serial_ids: selected
+          });
+        }
+      }
+
+      if (assignments.length === 0) {
+        this.showAlert('Đơn hàng này đã được gán đầy đủ mã Serial!', 'info');
+        return;
+      }
+
+      this.isAssigningSerial = true;
+      try {
+        const res = await axios.post(apiUrl('admin/don-hang/gan-serial'), {
+          don_hang_id: this.selectedOrder.id,
+          assignments: assignments
+        });
+        if (res.data && res.data.status) {
+          this.showAlert(res.data.message || 'Gán mã Serial và xuất kho thành công!', 'success');
+          this.selectedOrder = null;
+          await this.loadData();
+          await this.loadSerialData();
+        } else {
+          this.showAlert(res.data.message || 'Không thể gán mã serial', 'danger');
+        }
+      } catch (err) {
+        this.showAlert(err?.response?.data?.message || 'Lỗi khi gán mã serial xuất kho!', 'danger');
+      } finally {
+        this.isAssigningSerial = false;
+      }
     },
 
     // Cập nhật trạng thái đơn hàng gọi API

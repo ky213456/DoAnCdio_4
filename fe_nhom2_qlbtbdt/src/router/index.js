@@ -31,6 +31,12 @@ const clientRoutes = [
     meta: { title: 'Đặt Hàng & Thanh Toán - TechMart AI', layout: 'client' }
   },
   {
+    path: '/my-orders',
+    name: 'client-my-orders',
+    component: () => import('@/components/orders/index.vue'),
+    meta: { title: 'Lịch Sử Đơn Hàng Của Tôi - TechMart AI', layout: 'client' }
+  },
+  {
     path: '/product/:id',
     name: 'client-product-detail',
     // Sau này liên kết với view Chi tiết của Phạm Tiến Ninh
@@ -85,7 +91,19 @@ const adminRoutes = [
     name: 'admin-orders',
     // Sau này liên kết với Quản lý đơn hàng & Kho Serial
     component: () => import('@/components/admin/index.vue'),
-    meta: { title: 'Quản Lý Đơn Hàng & Serial', layout: 'admin' }
+    meta: { title: 'Quản Lý Đơn Hàng', layout: 'admin' }
+  },
+  {
+    path: '/admin/serial',
+    name: 'admin-serial',
+    component: () => import('@/components/serial/index.vue'),
+    meta: { title: 'Kho Serial & IMEI Độc Bản - TechMart Admin', layout: 'admin', requiresAuth: true }
+  },
+  {
+    path: '/serial',
+    name: 'serial-page',
+    component: () => import('@/components/serial/index.vue'),
+    meta: { title: 'Kho Serial & IMEI Độc Bản - TechMart Admin', layout: 'admin', requiresAuth: true }
   }
 ]
 

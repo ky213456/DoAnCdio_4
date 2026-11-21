@@ -113,7 +113,7 @@
               <hr class="dropdown-divider" />
               <a href="#" class="user-dropdown-item"><i class="bi bi-person me-2"></i>Hồ sơ cá nhân</a>
               <router-link to="/cart" class="user-dropdown-item"><i class="bi bi-cart3 me-2"></i>Giỏ hàng của tôi</router-link>
-              <a href="#" class="user-dropdown-item"><i class="bi bi-box-seam me-2"></i>Đơn hàng của tôi</a>
+              <router-link to="/my-orders" class="user-dropdown-item"><i class="bi bi-bag-check me-2"></i>Đơn hàng của tôi</router-link>
               <a href="#" class="user-dropdown-item"><i class="bi bi-shield-check me-2"></i>Tra cứu bảo hành</a>
               <router-link to="/admin" v-if="currentUser.vai_tro === 'admin' || currentUser.vai_tro === 'staff'" class="user-dropdown-item text-primary"><i class="bi bi-gear me-2"></i>Vào Admin Portal</router-link>
               <hr class="dropdown-divider" />

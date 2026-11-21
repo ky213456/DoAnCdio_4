@@ -30,6 +30,9 @@
           </div>
           <!-- Trạng thái tài khoản người dùng -->
           <div class="cart-auth-box ms-3" v-if="currentUser">
+            <router-link to="/my-orders" class="me-2 text-decoration-none small text-dark fw-bold">
+              <i class="bi bi-bag-check text-primary me-1"></i>Đơn hàng
+            </router-link>
             <span class="cart-user-name"><i class="bi bi-person-circle text-primary me-1"></i>{{ currentUser.ho_ten }}</span>
             <button class="btn-cart-logout ms-2" @click="handleLogout" title="Đăng xuất"><i class="bi bi-box-arrow-right"></i></button>
           </div>
