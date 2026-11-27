@@ -1,0 +1,240 @@
+{
+  "UC01 – Xem và tìm kiếm sản phẩm": {
+    "Actor": "Khách hàng (Khách vãng lai / Thành viên đã đăng nhập)",
+    "Pre": "Khách hàng đã truy cập vào hệ thống website.",
+    "Post": "Hệ thống hiển thị danh sách sản phẩm khớp với tiêu chí tìm kiếm hoặc hiển thị chi tiết thông tin sản phẩm được chọn.",
+    "MainFlow": "1. Khách hàng chọn chức năng tìm kiếm sản phẩm trên thanh tìm kiếm hoặc trang danh mục.\n2. Hệ thống hiển thị ô tìm kiếm kèm các bộ lọc thông số kỹ thuật (Hãng, CPU, RAM, Giá).\n3. Khách hàng nhập từ khóa tìm kiếm hoặc chọn các tiêu chí lọc mong muốn.\n4. Hệ thống kiểm tra dữ liệu, truy vấn CSDL và hiển thị danh sách sản phẩm phù hợp.\n5. Khách hàng chọn xem một sản phẩm cụ thể trong danh sách kết quả.\n6. Hệ thống truy xuất và hiển thị trang chi tiết thông tin sản phẩm.",
+    "AltFlow": ""
+  },
+  "UC02 – Đăng ký tài khoản": {
+    "Actor": "Khách vãng lai (Guest) -> Khách hàng thành viên (Customer)",
+    "Pre": "Người dùng chưa đăng nhập, truy cập website và nhấn chọn nút 'Đăng ký' trên thanh điều hướng Header hoặc tại bước thanh toán giỏ hàng.",
+    "Post": "Một tài khoản khách hàng mới được tạo thành công trong bảng nguoi_dung với vai trò 'khach_hang', mật khẩu được mã hóa bảo mật chuẩn Bcrypt, hệ thống sẵn sàng cho đăng nhập.",
+    "MainFlow": "",
+    "AltFlow": ""
+  },
+  "UC03 – Đăng nhập hệ thống (Xác thực JWT & Phân quyền RBAC)": {
+    "Actor": "Khách hàng, Nhân viên bán hàng, Nhân viên kho & bảo hành, Quản trị viên (Admin) (Use case trung tâm <<Include>>)",
+    "Pre": "Người dùng đã có tài khoản và mở giao diện đăng nhập (Modal hoặc trang /login).",
+    "Post": "Người dùng được xác thực thành công, được cấp cặp mã thông báo AccessToken và RefreshToken, hệ thống điều hướng đến trang tương ứng với vai trò (Trang mua sắm hoặc Admin Dashboard).",
+    "MainFlow": "",
+    "AltFlow": ""
+  },
+  "UC04 – Theo dõi trạng thái đơn hàng và lịch sử mua hàng": {
+    "Actor": "Khách hàng (Customer) (Đã đăng nhập và xác thực qua UC03)",
+    "Pre": "Khách hàng đã đăng nhập (JWT AccessToken hợp lệ, vai_tro = 'khach_hang'), tài khoản đang hoạt động và truy cập mục 'Đơn hàng của tôi' trên trang Tài khoản.",
+    "Post": "Hệ thống hiển thị chính xác danh sách đơn hàng thuộc nguoi_dung_id của khách hàng, chi tiết đơn được chọn và timeline trạng thái; không có dữ liệu nào bị thay đổi.",
+    "MainFlow": "",
+    "AltFlow": ""
+  },
+  "UC05 – Đánh giá, bình luận": {
+    "Actor": "Khách hàng (Customer) (Đã đăng nhập qua UC03 và đã mua sản phẩm)",
+    "Pre": "Khách hàng đã đăng nhập; tồn tại đơn hàng ở trạng thái 'hoan_tat' chứa biến thể sản phẩm cần đánh giá; khách hàng chưa đánh giá sản phẩm đó trong đơn hàng đó.",
+    "Post": "Một bản ghi mới được tạo trong bảng danh_gia (so_sao, noi_dung, hinh_anh, trang_thai = 'cho_duyet') gắn với nguoi_dung_id, san_pham_id và don_hang_id; dòng chi_tiet_don_hang được đánh dấu đã đánh giá.",
+    "MainFlow": "",
+    "AltFlow": ""
+  },
+  "UC06 – Đặt hàng và chọn phương thức thanh toán": {
+    "Actor": "Khách hàng",
+    "Pre": "Khách hàng đã có ít nhất một sản phẩm trong giỏ hàng.",
+    "Post": "Đơn hàng mới được lưu vào hệ thống với trạng thái tương ứng và số lượng tồn kho được cập nhật.",
+    "MainFlow": "1. Khách hàng nhấn nút \"Tiến hành đặt hàng\" từ trang giỏ hàng.\n2. Hệ thống hiển thị form nhập thông tin giao hàng và các phương thức thanh toán.\n3. Khách hàng nhập thông tin nhận hàng (Họ tên, SĐT, Địa chỉ), áp dụng voucher (nếu có) và chọn phương thức thanh toán.\n4. Hệ thống kiểm tra thông tin đặt hàng và tính toán tổng tiền thanh toán.\n5. Khách hàng nhấn nút \"Xác nhận đặt hàng\".\n6. Hệ thống kiểm tra tồn kho, lưu đơn hàng vào CSDL, trừ số lượng tồn và hiển thị thông báo \"Đặt hàng thành công\".",
+    "AltFlow": ""
+  },
+  "UC07 – Hủy đơn hàng (khi đơn chưa qua bước đóng gói)": {
+    "Actor": "Khách hàng (Tác nhân phụ: Cổng thanh toán VNPay)",
+    "Pre": "Khách hàng đã đăng nhập (<<Include>> UC03 – Đăng nhập).\nĐơn hàng thuộc về khách hàng và đang ở trạng thái chưa đóng gói: cho_thanh_toan, cho_xu_ly hoặc da_xac_nhan.",
+    "Post": "Đơn chuyển sang trạng thái da_huy, lưu lý do và thời điểm hủy.\nSố lượng tồn kho được cộng lại; các thiet_bi_serial đã giữ quay về trang_thai = trong_kho.\nNếu đơn đã thanh toán VNPay, yêu cầu hoàn tiền được ghi nhận. Khách hàng nhận thông báo xác nhận hủy.",
+    "MainFlow": "1. Khách hàng vào “Lịch sử đơn hàng”, chọn đơn cần hủy và nhấn “Hủy đơn hàng”.\n2. Hệ thống kiểm tra quyền sở hữu đơn và trạng thái đơn (chưa qua bước đóng gói).\n3. Hệ thống hiển thị modal hủy đơn gồm danh sách lý do hủy, ô ghi chú và số tiền hoàn dự kiến.\n4. Khách hàng chọn lý do hủy (có thể nhập ghi chú) và nhấn “Xác nhận hủy”.\n5. Hệ thống kiểm tra lại trạng thái đơn, mở transaction và cập nhật don_hang sang da_huy kèm lý do.\n6. Hệ thống cộng lại so_luong_ton, đưa các thiet_bi_serial đã giữ về trong_kho, hoàn lại Voucher (nếu có) rồi commit.\n7. Nếu đơn đã thanh toán qua VNPay, hệ thống gửi yêu cầu hoàn tiền sang cổng VNPay và ghi nhận kết quả.\n8. Hệ thống gửi email xác nhận và hiển thị thông báo “Hủy đơn hàng thành công”.",
+    "AltFlow": ""
+  },
+  "UC09 – Báo cáo thống kê": {
+    "Actor": "Admin",
+    "Pre": "Admin đã đăng nhập (<<Include>> UC03) và có quyền xem báo cáo (UC11 – Phân quyền); hệ thống đã có dữ liệu đơn hàng.",
+    "Post": "Dashboard hiển thị đúng số liệu theo bộ lọc; nếu xuất báo cáo thì tệp được tạo và tải về. Use case chỉ đọc dữ liệu, không làm thay đổi dữ liệu nghiệp vụ.",
+    "MainFlow": "",
+    "AltFlow": ""
+  },
+  "UC09.1 – Xem báo cáo thống kê": {
+    "Actor": "Admin",
+    "Pre": "Admin đã đăng nhập và có quyền xem báo cáo.\nHệ thống đã có dữ liệu đơn hàng.",
+    "Post": "Dashboard hiển thị đúng số liệu theo bộ lọc Admin chọn.\nKhông có dữ liệu nghiệp vụ nào bị thay đổi.",
+    "MainFlow": "1. Admin chọn “Báo cáo thống kê” trên menu quản trị.\n2. Hệ thống tải dashboard mặc định (tháng hiện tại) và hiển thị chỉ số, biểu đồ, bảng.\n3. Admin chọn khoảng thời gian (hôm nay, 7 ngày, tháng hoặc tùy chọn) và loại báo cáo, nhấn “Áp dụng”.\n4. Hệ thống kiểm tra tính hợp lệ của bộ lọc.\n5. Hệ thống thống kê dữ liệu theo bộ lọc: doanh thu và số đơn chỉ tính đơn hoan_tat; đơn da_huy được thống kê riêng để tính tỷ lệ hủy.\n6. Hệ thống tổng hợp chỉ số (tổng doanh thu, số đơn, giá trị trung bình mỗi đơn, tỷ lệ hủy), dựng biểu đồ và bảng.\n7. Admin xem kết quả báo cáo.",
+    "AltFlow": ""
+  },
+  "UC09.2 – Xuất báo cáo": {
+    "Actor": "Admin",
+    "Pre": "Admin đã đăng nhập và có quyền xem báo cáo.\nAdmin đang xem một báo cáo hợp lệ (đã áp dụng bộ lọc).",
+    "Post": "Tệp báo cáo Excel hoặc PDF được tạo theo bộ lọc hiện tại và tải về máy.\nDữ liệu nghiệp vụ không bị thay đổi.",
+    "MainFlow": "1. Admin nhấn “Xuất Excel” hoặc “Xuất PDF” trên dashboard.\n2. Hệ thống hiển thị hộp thoại chọn định dạng tệp và nội dung báo cáo.\n3. Admin chọn định dạng, nội dung và nhấn “Xuất báo cáo”.\n4. Hệ thống kiểm tra báo cáo hiện tại có dữ liệu.\n5. Hệ thống lấy số liệu theo bộ lọc đang áp dụng.\n6. Hệ thống tạo tệp Excel hoặc PDF.\n7. Hệ thống trả tệp về trình duyệt để tải xuống.\n8. Hệ thống hiển thị “Xuất báo cáo thành công”.",
+    "AltFlow": ""
+  },
+  "UC10 – Quản lý nhân viên (Thêm, Sửa, Xóa)": {
+    "Actor": "Quản trị viên (Admin) (Đã đăng nhập và xác thực vai trò qua UC03)",
+    "Pre": "Quản trị viên đã đăng nhập hệ thống với tài khoản có quyền Admin cao nhất và truy cập phân hệ Quản trị > Nhân sự.",
+    "Post": "Dữ liệu nhân viên được cập nhật chính xác trong bảng nguoi_dung với vai trò nhân viên tương ứng; ghi nhận nhật ký thao tác (Audit Log).",
+    "MainFlow": "",
+    "AltFlow": ""
+  },
+  "UC11 – Phân quyền hệ thống (Role-Based Access Control - RBAC)": {
+    "Actor": "Quản trị viên (Admin) (Đã xác thực qua UC03)",
+    "Pre": "Admin đã đăng nhập và truy cập trang Cấu hình hệ thống > Phân quyền.",
+    "Post": "Bảng ma trận phân quyền được lưu trữ, áp dụng trực tiếp lên Middleware xác thực và kiểm soát quyền hạn (RBAC Authorization Middleware) của các yêu cầu API.",
+    "MainFlow": "",
+    "AltFlow": ""
+  },
+  "UC12 – Quản lý sản phẩm (Thêm, Sửa, Xóa, đổi trạng thái)": {
+    "Actor": "Nhân viên bán hàng (Staff), Quản trị viên (Admin – kế thừa quyền Nhân viên)",
+    "Pre": "Nhân viên đã đăng nhập (UC03) với vai trò có quyền 'Quản lý sản phẩm' trong ma trận phân quyền (UC11); danh mục và thương hiệu đã được tạo (UC22).",
+    "Post": "Dữ liệu được ghi chính xác vào các bảng san_pham, bien_the_san_pham, thong_so_ky_thuat, hinh_anh_san_pham; mọi thao tác Thêm/Sửa/Xóa/Đổi trạng thái được lưu vết vào nhat_ky_he_thong (Audit Log).",
+    "MainFlow": "",
+    "AltFlow": ""
+  },
+  "UC13 – Quản lý Voucher (Thêm, Sửa, Xóa, đổi trạng thái)": {
+    "Actor": "Nhân viên bán hàng (Staff), Quản trị viên (Admin – kế thừa quyền Nhân viên)",
+    "Pre": "Nhân viên đã đăng nhập (UC03) với vai trò có quyền 'Quản lý Voucher' (UC11) và truy cập Admin Dashboard > Khuyến mãi.",
+    "Post": "Bản ghi trong bảng ma_giam_gia được thêm, cập nhật, xóa hoặc đổi trạng thái chính xác; thao tác được ghi vào nhat_ky_he_thong.",
+    "MainFlow": "",
+    "AltFlow": ""
+  },
+  "UC14 – Quản lý đơn hàng": {
+    "Actor": "Nhân viên, Admin",
+    "Pre": "Người dùng đã đăng nhập (<<Include>> UC03) với vai trò Nhân viên hoặc Admin và có quyền quản lý đơn hàng.",
+    "Post": "Dữ liệu đơn hàng, tồn kho và mã Serial/IMEI nhất quán; mọi thay đổi được ghi lịch sử (người thực hiện, thời điểm, nội dung).",
+    "MainFlow": "",
+    "AltFlow": ""
+  },
+  "UC14.1 – Thêm đơn hàng": {
+    "Actor": "Nhân viên, Admin",
+    "Pre": "Đã đăng nhập (<<Include>> UC03) và có quyền quản lý đơn hàng.\nKhách hàng đã có hồ sơ trong hệ thống; sản phẩm đang kinh doanh.",
+    "Post": "Đơn mới được lưu ở trạng thái cho_xu_ly cùng chi tiết đơn.\nLịch sử xử lý được ghi; khách hàng nhận thông báo đơn mới.",
+    "MainFlow": "1. Nhân viên nhấn “+ Tạo đơn hàng” trên danh sách đơn.\n2. Hệ thống hiển thị biểu mẫu tạo đơn.\n3. Nhân viên chọn khách hàng (số điện thoại tự điền) và nhập địa chỉ giao hàng.\n4. Nhân viên chọn sản phẩm, nhập số lượng, nhấn “+ Thêm vào đơn” (lặp lại cho từng sản phẩm) và chọn hình thức thanh toán.\n5. Nhân viên nhấn “Lưu đơn”.\n6. Hệ thống kiểm tra dữ liệu bắt buộc và định dạng.\n7. Hệ thống kiểm tra tồn kho của từng sản phẩm.\n8. Hệ thống tính tổng tiền, bắt đầu giao dịch, lưu don_hang và chi_tiet_don_hang ở trạng thái cho_xu_ly, ghi lịch sử và xác nhận giao dịch.\n9. Hệ thống thông báo cho khách hàng, hiển thị “Tạo đơn thành công” và làm mới danh sách.",
+    "AltFlow": ""
+  },
+  "UC14.2 – Sửa đơn hàng": {
+    "Actor": "Nhân viên, Admin",
+    "Pre": "Đã đăng nhập và có quyền quản lý đơn hàng.\nĐơn đang ở trạng thái cho_thanh_toan, cho_xu_ly hoặc da_xac_nhan.",
+    "Post": "Đơn được cập nhật; tổng tiền và tồn kho được tính lại.\nLịch sử chỉnh sửa (nội dung cũ → mới, người sửa, thời điểm) được ghi lại.",
+    "MainFlow": "1. Nhân viên chọn một đơn trong danh sách và nhấn “Sửa”.\n2. Hệ thống hiển thị biểu mẫu sửa với dữ liệu hiện tại (mã đơn không được sửa).\n3. Nhân viên chỉnh sửa thông tin cần thay đổi.\n4. Nhân viên nhấn “Lưu thay đổi”.\n5. Hệ thống kiểm tra đơn vẫn ở trạng thái chưa đóng gói.\n6. Hệ thống kiểm tra dữ liệu và tồn kho cho số lượng mới.\n7. Hệ thống tính lại tổng tiền, bắt đầu giao dịch, lưu thay đổi, ghi lịch sử và xác nhận giao dịch.\n8. Hệ thống hiển thị “Cập nhật thành công” và làm mới danh sách.",
+    "AltFlow": ""
+  },
+  "UC14.3 – Xóa đơn hàng": {
+    "Actor": "Nhân viên, Admin",
+    "Pre": "Đã đăng nhập và có quyền quản lý đơn hàng.\nĐơn đang ở trạng thái da_huy hoặc là đơn nháp.",
+    "Post": "Đơn được đánh dấu da_xoa và không còn hiển thị trong danh sách.\nLịch sử xóa được ghi lại.",
+    "MainFlow": "1. Nhân viên chọn một đơn và nhấn “Xóa”.\n2. Hệ thống hiển thị hộp thoại xác nhận (mã đơn, khách hàng, tổng tiền, trạng thái).\n3. Nhân viên nhấn “Đồng ý xóa”.\n4. Hệ thống kiểm tra đơn đang ở trạng thái da_huy hoặc là đơn nháp.\n5. Hệ thống bắt đầu giao dịch, đánh dấu đơn đã xóa, ghi lịch sử và xác nhận giao dịch.\n6. Hệ thống hiển thị “Xóa đơn thành công” và làm mới danh sách.",
+    "AltFlow": ""
+  },
+  "UC14.4 – Duyệt đơn và đổi trạng thái": {
+    "Actor": "Nhân viên, Admin",
+    "Pre": "Đã đăng nhập và có quyền quản lý đơn hàng.\nĐơn chưa ở trạng thái hoan_tat hoặc da_huy.",
+    "Post": "Đơn chuyển sang trạng thái mới đúng luồng; mã Serial/IMEI được gán khi duyệt.\nLịch sử xử lý được ghi; khách hàng nhận thông báo.",
+    "MainFlow": "1. Nhân viên chọn đơn, mở màn hình “Chi tiết & duyệt đơn”.\n2. Hệ thống hiển thị thông tin khách hàng, địa chỉ, danh sách sản phẩm và tình trạng kho.\n3. Nhân viên nhấn “Duyệt đơn” hoặc chọn trạng thái kế tiếp (đóng gói → đang giao → hoàn tất).\n4. Hệ thống kiểm tra trạng thái mới có đúng luồng xử lý.\n5. Hệ thống kiểm tra tồn kho và mã Serial/IMEI khả dụng.\n6. Hệ thống bắt đầu giao dịch: cập nhật trạng thái, giữ và gán mã Serial/IMEI (khi duyệt), ghi lịch sử và xác nhận giao dịch.\n7. Hệ thống gửi thông báo cho khách hàng.\n8. Hệ thống hiển thị “Cập nhật thành công” và làm mới danh sách.",
+    "AltFlow": ""
+  },
+  "UC15 – Quản lý khách hàng": {
+    "Actor": "Nhân viên, Admin",
+    "Pre": "Người dùng đã đăng nhập (<<Include>> UC03) với vai trò Nhân viên hoặc Admin và có quyền quản lý khách hàng.",
+    "Post": "Hồ sơ khách hàng (bảng nguoi_dung, vai_tro = khach_hang) được thêm, sửa, xóa mềm hoặc đổi trạng thái đúng; mọi thao tác được ghi nhật ký.",
+    "MainFlow": "",
+    "AltFlow": ""
+  },
+  "UC15.1 – Thêm khách hàng": {
+    "Actor": "Nhân viên, Admin",
+    "Pre": "Đã đăng nhập và có quyền quản lý khách hàng.",
+    "Post": "Hồ sơ khách hàng mới được lưu (vai_tro = khach_hang) với mật khẩu tạm đã mã hóa.\nKhách hàng nhận email thông báo tài khoản; thao tác được ghi nhật ký.",
+    "MainFlow": "1. Nhân viên nhấn “+ Thêm khách hàng” trên danh sách.\n2. Hệ thống hiển thị biểu mẫu thêm khách hàng.\n3. Nhân viên nhập họ tên, email, số điện thoại, ngày sinh, địa chỉ và nhấn “Lưu”.\n4. Hệ thống kiểm tra định dạng dữ liệu.\n5. Hệ thống kiểm tra email và số điện thoại chưa tồn tại.\n6. Hệ thống tạo mật khẩu tạm, mã hóa, bắt đầu giao dịch, lưu tài khoản khách hàng mới và xác nhận giao dịch.\n7. Hệ thống gửi thư thông báo tài khoản cho khách hàng.\n8. Hệ thống hiển thị “Thêm khách hàng thành công” và làm mới danh sách.",
+    "AltFlow": ""
+  },
+  "UC15.2 – Sửa thông tin khách hàng": {
+    "Actor": "Nhân viên, Admin",
+    "Pre": "Đã đăng nhập và có quyền quản lý khách hàng.\nKhách hàng cần sửa còn tồn tại trong hệ thống.",
+    "Post": "Hồ sơ khách hàng được cập nhật; thao tác được ghi nhật ký.",
+    "MainFlow": "1. Nhân viên chọn khách hàng trong danh sách và nhấn “Sửa”.\n2. Hệ thống hiển thị biểu mẫu sửa với dữ liệu hiện tại (mã khách hàng không được sửa).\n3. Nhân viên chỉnh sửa thông tin và nhấn “Lưu”.\n4. Hệ thống kiểm tra khách hàng vẫn còn tồn tại.\n5. Hệ thống kiểm tra định dạng dữ liệu và email, số điện thoại không trùng khách khác.\n6. Hệ thống bắt đầu giao dịch, cập nhật hồ sơ, ghi nhật ký và xác nhận giao dịch.\n7. Hệ thống hiển thị “Cập nhật thành công” và làm mới danh sách.",
+    "AltFlow": ""
+  },
+  "UC15.3 – Xóa khách hàng": {
+    "Actor": "Nhân viên, Admin",
+    "Pre": "Đã đăng nhập và có quyền quản lý khách hàng.\nKhách hàng không có đơn nào chưa hoàn tất.",
+    "Post": "Hồ sơ khách hàng được ẩn khỏi danh sách (xóa mềm); lịch sử đơn hàng được giữ nguyên.\nThao tác xóa được ghi nhật ký.",
+    "MainFlow": "1. Nhân viên chọn khách hàng và nhấn “Xóa”.\n2. Hệ thống hiển thị hộp thoại xác nhận (họ tên, email, số điện thoại, số đơn đã đặt).\n3. Nhân viên nhấn “Đồng ý xóa”.\n4. Hệ thống kiểm tra khách hàng không còn đơn chưa hoàn tất.\n5. Hệ thống bắt đầu giao dịch, ẩn hồ sơ khách hàng (xóa mềm), ghi nhật ký và xác nhận giao dịch.\n6. Hệ thống hiển thị “Xóa thành công” và làm mới danh sách.",
+    "AltFlow": ""
+  },
+  "UC15.4 – Khóa / Mở tài khoản khách hàng": {
+    "Actor": "Nhân viên, Admin",
+    "Pre": "Đã đăng nhập và có quyền quản lý khách hàng.\nKhách hàng còn tồn tại trong hệ thống.",
+    "Post": "Trạng thái tài khoản chuyển giữa “Hoạt động” và “Bị khóa”; khách bị khóa không thể đăng nhập.\nThao tác được ghi nhật ký (người thực hiện, thời điểm).",
+    "MainFlow": "1. Nhân viên chọn khách hàng và nhấn “Khóa” (hoặc “Mở”).\n2. Hệ thống hiển thị hộp thoại xác nhận.\n3. Nhân viên nhấn “Xác nhận”.\n4. Hệ thống kiểm tra khách hàng còn tồn tại.\n5. Hệ thống bắt đầu giao dịch, đổi trạng thái tài khoản, ghi nhật ký và xác nhận giao dịch.\n6. Nếu là khóa, hệ thống hủy phiên đăng nhập hiện tại của khách.\n7. Hệ thống hiển thị “Cập nhật trạng thái thành công” và đổi nhãn trạng thái trên danh sách.",
+    "AltFlow": ""
+  },
+  "UC16 – Quản lý bình luận": {
+    "Actor": "Nhân viên bán hàng (Staff), Quản trị viên (Admin – kế thừa quyền Nhân viên)",
+    "Pre": "Nhân viên đã đăng nhập (UC03) với quyền 'Quản lý bình luận' (UC11); tồn tại bản ghi danh_gia do khách hàng gửi.",
+    "Post": "Bản ghi danh_gia được chuyển sang 'da_duyet' (hiển thị công khai) hoặc 'da_an' kèm lý do; điểm trung bình và số lượt đánh giá của sản phẩm được tính lại; phản hồi của nhân viên (nếu có) được lưu và hiển thị dưới đánh giá.",
+    "MainFlow": "",
+    "AltFlow": ""
+  },
+  "UC17 – Tư vấn mua sắm bằng AI Chatbot (Google Gemini API)": {
+    "Actor": "Khách vãng lai, Khách hàng thành viên",
+    "Pre": "Người dùng truy cập website và nhấn vào biểu tượng bong bóng Chatbot AI ở góc dưới bên phải màn hình.",
+    "Post": "Khách hàng nhận được câu trả lời tư vấn chuyên sâu kèm thẻ sản phẩm gợi ý; cuộc hội thoại được ghi nhận vào bảng lich_su_chat_ai để theo dõi và cải thiện chất lượng phục vụ.",
+    "MainFlow": "",
+    "AltFlow": ""
+  },
+  "UC18 – Tra cứu bảo hành máy theo Serial/IMEI": {
+    "Actor": "Khách vãng lai, Khách hàng",
+    "Pre": "Hệ thống đã có dữ liệu thiết bị được nhập kho và gán mã Serial/IMEI thực tế trong bảng cơ sở dữ liệu (thiet_bi_serial).",
+    "Post": "Hiển thị chính xác thông tin hạn bảo hành, trạng thái máy (Còn hạn / Hết hạn / Đang bảo hành) cho người dùng.",
+    "MainFlow": "1. Người dùng truy cập trang tra cứu bảo hành trên website.\n2. Nhập mã Serial hoặc số IMEI của thiết bị vào ô tìm kiếm và nhấn nút \"Tra cứu\".\n3. Hệ thống kiểm tra định dạng dữ liệu đầu vào và truy vấn bảng thiet_bi_serial trong cơ sở dữ liệu.\n4. Hệ thống trả về kết quả gồm: Tên thiết bị, ngày mua, thời hạn bảo hành còn lại và trạng thái bảo hành.",
+    "AltFlow": ""
+  },
+  "UC19 – Tiếp nhận & xử lý bảo hành, đổi trả": {
+    "Actor": "Nhân viên Kỹ thuật, Admin",
+    "Pre": "Nhân viên đã đăng nhập vào phân hệ quản trị với quyền kỹ thuật viên.",
+    "Post": "Tạo mới phiếu bảo hành, cập nhật trạng thái của mã Serial thiết bị thành dang_bao_hanh hoặc da_doi_moi trong cơ sở dữ liệu.",
+    "MainFlow": "1. Nhân viên kỹ thuật chọn chức năng tiếp nhận bảo hành.\n2. Quét hoặc nhập mã Serial/IMEI của thiết bị cần bảo hành. \n3. Hệ thống hiển thị thông tin lịch sử mua hàng và thời hạn bảo hành của thiết bị.\n4. Nhân viên nhập mô tả lỗi, chọn hình thức xử lý (Sửa chữa / Đổi mới / Từ chối) và bấm \"Lập phiếu\".\n5. Hệ thống lưu phiếu bảo hành vào cơ sở dữ liệu và cập nhật trạng thái thiết bị.",
+    "AltFlow": ""
+  },
+  "UC20 – Quản lý thông tin cá nhân & Sổ địa chỉ, Đổi MK": {
+    "Actor": "Khách hàng",
+    "Pre": "Người dùng đã đăng nhập thành công vào hệ thống (thông qua UC03).",
+    "Post": "Thông tin tài khoản, danh sách địa chỉ hoặc mật khẩu mới được cập nhật an toàn vào bảng nguoi_dung trong cơ sở dữ liệu.",
+    "MainFlow": "1. Người dùng truy cập trang \"Hồ sơ cá nhân\". \n2. Chọn tab thao tác (Cập nhật thông tin / Sổ địa chỉ / Đổi mật khẩu). \n3. Nhập các thông tin thay đổi mới và nhấn nút \"Lưu thay đổi\".\n4. Hệ thống xác thực dữ liệu đầu vào, mã hóa mật khẩu mới bằng Bcrypt (nếu có) và cập nhật vào cơ sở dữ liệu. \n5. Hệ thống hiển thị thông báo \"Cập nhật thành công\".",
+    "AltFlow": ""
+  },
+  "UC21 – So sánh thông số kỹ thuật sản phẩm": {
+    "Actor": "Khách hàng",
+    "Pre": "Khách hàng đang ở trang danh sách sản phẩm hoặc trang chi tiết sản phẩm.",
+    "Post": "Bảng so sánh thông số kỹ thuật đa cột được hiển thị với các thông số nổi bật được đánh dấu.",
+    "MainFlow": "1. Khách hàng nhấn nút \"Thêm vào so sánh\" tại các sản phẩm muốn so sánh.\n2. Hệ thống thêm sản phẩm vào khay so sánh và cập nhật widget nổi trên màn hình.\n3. Khách hàng nhấn nút \"So sánh ngay\" trên khay so sánh.\n4. Hệ thống kiểm tra danh sách sản phẩm cần so sánh.\n5. Hệ thống truy vấn CSDL lấy toàn bộ thông số chi tiết của các thiết bị đã chọn.\n6. Hệ thống hiển thị bảng so sánh song song đa cột và tự động làm nổi bật các thông số kỹ thuật vượt trội.",
+    "AltFlow": ""
+  },
+  "UC22 – Quản lý danh mục & Thương hiệu": {
+    "Actor": "Nhân viên, Admin",
+    "Pre": "Người dùng đã đăng nhập với quyền Quản trị viên (Admin) hoặc Nhân viên quản lý.",
+    "Post": "Dữ liệu danh mục hoặc thương hiệu được cập nhật đồng bộ trong bảng danh_muc và giao diện trang chủ.",
+    "MainFlow": "1. Người quản trị truy cập phân hệ \"Quản lý danh mục & Thương hiệu\".\n2. Chọn thao tác tương ứng (Thêm mới, Chỉnh sửa thông tin hoặc Xóa/Ẩn danh mục).\n3. Nhập đầy đủ thông tin chi tiết (Tên danh mục, mô tả, tệp hình ảnh logo thương hiệu).\n4. Nhấn \"Xác nhận\". Hệ thống kiểm tra dữ liệu và lưu vào cơ sở dữ liệu.",
+    "AltFlow": ""
+  },
+  "UC23 – Quản lý nhập kho & cấp phát mã Serial/IMEI": {
+    "Actor": "Nhân viên Kho, Admin",
+    "Pre": "Nhân viên đã đăng nhập vào hệ thống với quyền quản lý kho bãi.",
+    "Post": "Cập nhật số lượng tồn kho sản phẩm trong bảng san_pham và sinh các bản ghi mã Serial độc nhất vào bảng thiet_bi_serial với trạng thái trong_kho.",
+    "MainFlow": "1. Nhân viên chọn chức năng \"Quản lý nhập kho\" và nhấn \"Tạo phiếu nhập mới\".\n2. Chọn sản phẩm, số lượng nhập và quét/nhập danh sách mã Serial/IMEI tương ứng cho từng thiết bị.\n3. Hệ thống kiểm tra tính duy nhất của dải mã Serial trong cơ sở dữ liệu (không bị trùng lặp).\n4. Hệ thống lưu phiếu nhập kho, cập nhật trạng thái thiết bị thành trong_kho và cộng dồn số lượng tồn kho.",
+    "AltFlow": ""
+  },
+  "UC24 – Thanh toán trực tuyến qua cổng VNPay": {
+    "Actor": "Khách hàng, Cổng thanh toán VNPay",
+    "Pre": "Khách hàng đã hoàn thành thông tin đơn hàng ở UC06 và chọn hình thức \"Thanh toán qua cổng VNPay\".",
+    "Post": "Trạng thái thanh toán của đơn hàng được cập nhật thành công và giao dịch được ghi nhận trong CSDL.",
+    "MainFlow": "1. Khách hàng chọn phương thức \"Thanh toán qua VNPay\" và nhấn \"Xác nhận thanh toán\".\n2. Hệ thống tạo mã giao dịch, sinh URL thanh toán kèm chữ ký số bảo mật và điều hướng khách hàng sang cổng VNPay.\n3. Khách hàng chọn phương thức thanh toán (quét mã QR / Thẻ ATM) trên giao diện VNPay và xác thực mã OTP.\n4. Cổng thanh toán VNPay xử lý trừ tiền và gửi kết quả giao dịch về cho hệ thống.\n5. Hệ thống tiếp nhận phản hồi, kiểm tra tính toàn vẹn chữ ký dữ liệu trả về.\n6. Hệ thống cập nhật trạng thái đơn hàng thành \"Đã thanh toán\", lưu mã giao dịch và hiển thị thông báo thanh toán thành công.",
+    "AltFlow": ""
+  },
+  "UC25 – Quản lý danh sách yêu thích (Wishlist)": {
+    "Actor": "Khách hàng (Đã đăng nhập tài khoản)",
+    "Pre": "Khách hàng đã đăng nhập tài khoản thành công vào hệ thống.",
+    "Post": "Danh sách sản phẩm yêu thích của khách hàng được cập nhật chính xác trong CSDL.",
+    "MainFlow": "1. Khách hàng nhấn biểu tượng Trái tim (Yêu thích) tại thẻ sản phẩm hoặc trang chi tiết.\n2. Hệ thống kiểm tra và lưu sản phẩm vào danh sách yêu thích trong CSDL, đồng thời hiển thị thông báo \"Đã thêm vào mục yêu thích\".\n3. Khách hàng chọn mục \"Sản phẩm yêu thích\" trên thanh điều hướng/trang cá nhân.\n4. Hệ thống truy vấn CSDL và hiển thị danh sách các sản phẩm đã lưu (Ảnh, tên, giá bán hiện tại, tình trạng hàng).\n5. Khách hàng chọn thao tác xóa sản phẩm khỏi danh sách hoặc nhấn nút \"Thêm vào giỏ hàng\" để mua sắm.\n6. Hệ thống cập nhật CSDL và làm mới danh sách hiển thị tương ứng.",
+    "AltFlow": ""
+  }
+}

@@ -13,7 +13,7 @@ class HoiThoaiAiSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('hoi_thoai_ai')->truncate();
+        DB::table('hoi_thoai_ai')->delete();
 
         $hoiThoais = [
             // Cuộc hội thoại 1: Khách hàng Nguyễn Văn A hỏi tư vấn Laptop & Màn hình

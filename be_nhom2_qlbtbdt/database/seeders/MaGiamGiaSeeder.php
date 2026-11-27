@@ -13,7 +13,7 @@ class MaGiamGiaSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('ma_giam_gia')->truncate();
+        DB::table('ma_giam_gia')->delete();
         
         $maGiamGias = [
             // 1. Mã giảm giá theo phần trăm %

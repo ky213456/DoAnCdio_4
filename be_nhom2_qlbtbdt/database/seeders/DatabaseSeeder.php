@@ -19,8 +19,10 @@ class DatabaseSeeder extends Seeder
         Schema::disableForeignKeyConstraints();
 
         $this->call([
-            // 1. Nhóm Người dùng & Địa chỉ
+            // 1. Nhóm Người dùng, Chức năng & Phân quyền
             NguoiDungSeeder::class,
+            ChucNangSeeder::class,
+            PhanQuyenSeeder::class,
             DiaChiNguoiDungSeeder::class,
 
             // 2. Nhóm Phân loại & Thương hiệu

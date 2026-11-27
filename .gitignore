@@ -23,3 +23,8 @@ Thumbs.db
 **/public/build/
 **/public/hot/
 **/public/storage
+
+# Python
+__pycache__/
+*.pyc
+be_nhom2_qlbtbdt/__pycache__/

@@ -13,7 +13,7 @@ class DanhGiaSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('danh_gia')->truncate();
+        DB::table('danh_gia')->delete();
 
         $danhGias = [
             // Đánh giá 1: Khách hàng Nguyễn Văn A đánh giá Màn hình LG (SP 1) từ Đơn hàng 1

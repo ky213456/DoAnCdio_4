@@ -13,7 +13,7 @@ class TinNhanAiSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('tin_nhan_ai')->truncate();
+        DB::table('tin_nhan_ai')->delete();
 
         $tinNhans = [
             // Hội thoại 1: Tư vấn Laptop Gaming & Màn hình

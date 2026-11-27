@@ -13,7 +13,7 @@ class GioHangSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('gio_hang')->truncate();
+        DB::table('gio_hang')->delete();
 
         $gioHangs = [
             // Khách hàng Nguyễn Văn A (ID 3) có trong giỏ RAM Corsair Black (bien_the_id = 5)

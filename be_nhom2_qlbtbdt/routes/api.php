@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BaoHanhController;
 use App\Http\Controllers\ChatBotController;
+use App\Http\Controllers\DanhGiaController;
 use App\Http\Controllers\DanhMucController;
 use App\Http\Controllers\DonHangController;
 use App\Http\Controllers\GioHangController;
@@ -13,6 +14,8 @@ use App\Http\Controllers\ThanhToanController;
 use App\Http\Controllers\ThongKeController;
 use App\Http\Controllers\ThuongHieuController;
 use App\Http\Controllers\TrangChuController;
+use App\Http\Controllers\VoucherController;
+use App\Http\Controllers\YeuThichController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -37,15 +40,20 @@ Route::prefix('')->group(function () {
 Route::prefix('')->group(function () {
     // CHECK TOKEN ADMIN
     Route::group(['prefix' => '/admin'], function () {
-        //Nhân viên
+        //Nhân viên & Phân quyền (UC10, UC11)
         Route::get('nhan-vien/get-data', [NhanVienController::class, 'getData']);
         Route::post('nhan-vien/add-data', [NhanVienController::class, 'addData']);
         Route::post('nhan-vien/update', [NhanVienController::class, 'update']);
         Route::post('nhan-vien/delete', [NhanVienController::class, 'destroy']);
         Route::post('nhan-vien/change-status', [NhanVienController::class, 'changeStatus']);
+        Route::post('nhan-vien/update-permissions', [NhanVienController::class, 'updatePermissions']);
+        Route::get('chuc-nang/get-data', [NhanVienController::class, 'getChucNangList']);
 
-        //Khách hàng
+        //Khách hàng (UC15)
         Route::get('khach-hang/get-data', [KhachHangController::class, 'getData']);
+        Route::post('khach-hang/add-data', [KhachHangController::class, 'addData']);
+        Route::post('khach-hang/update', [KhachHangController::class, 'update']);
+        Route::post('khach-hang/delete', [KhachHangController::class, 'destroy']);
         Route::post('khach-hang/change-status', [KhachHangController::class, 'changeStatus']);
 
         //Danh mục
@@ -89,6 +97,24 @@ Route::prefix('')->group(function () {
         //Quản lý & Đối soát Giao dịch Thanh toán (PayOS / VNPAY / COD)
         Route::get('thanh-toan/get-data', [ThanhToanController::class, 'getAdminTransactions']);
         Route::post('thanh-toan/doi-soat', [ThanhToanController::class, 'reconcilePayOs']);
+
+        //Đánh giá & Bình luận (UC16)
+        Route::get('danh-gia/get-data', [DanhGiaController::class, 'getAdminReviews']);
+        Route::post('danh-gia/change-status', [DanhGiaController::class, 'changeStatus']);
+        Route::post('danh-gia/delete', [DanhGiaController::class, 'deleteReview']);
+
+        //Voucher khuyến mãi (UC13)
+        Route::get('voucher/get-data', [VoucherController::class, 'getData']);
+        Route::post('voucher/add-data', [VoucherController::class, 'addData']);
+        Route::post('voucher/update', [VoucherController::class, 'update']);
+        Route::post('voucher/delete', [VoucherController::class, 'destroy']);
+        Route::post('voucher/change-status', [VoucherController::class, 'changeStatus']);
+
+        //Bảo hành & Đổi trả RMA (UC19)
+        Route::get('bao-hanh/get-data', [BaoHanhController::class, 'getAdminTickets']);
+        Route::post('bao-hanh/create', [BaoHanhController::class, 'createTicket']);
+        Route::post('bao-hanh/update-status', [BaoHanhController::class, 'updateTicketStatus']);
+        Route::post('bao-hanh/delete', [BaoHanhController::class, 'deleteTicket']);
     });
 });
 
@@ -101,11 +127,29 @@ Route::prefix('')->group(function () {
         Route::get('trang-chu/get-data', [TrangChuController::class, 'getData']);
         Route::get('trang-chu/get-tat-ca-san-pham', [TrangChuController::class, 'getTatCaSanPham']);
 
-        //Sản phẩm
+        //Sản phẩm & So sánh (UC01, UC02)
         Route::get('san-pham/get-data', [SanPhamController::class, 'getDataClient']);
         Route::get('san-pham/filter', [SanPhamController::class, 'filterClient']);
         Route::get('chi-tiet-san-pham/{id}', [SanPhamController::class, 'chiTietSanPham']);
-        Route::post('san-pham/compare', [SanPhamController::class, 'compareClient']);
+        Route::match(['get', 'post'], 'san-pham/compare', [SanPhamController::class, 'compareClient']);
+
+        //Đánh giá & Bình luận (UC03)
+        Route::get('san-pham/{id}/danh-gia', [DanhGiaController::class, 'getReviewsByProduct']);
+        Route::post('san-pham/{id}/danh-gia', [DanhGiaController::class, 'guiDanhGia']);
+
+        //Yêu thích (UC05)
+        Route::get('yeu-thich/danh-sach', [YeuThichController::class, 'getWishlist']);
+        Route::post('yeu-thich/toggle', [YeuThichController::class, 'toggleFavorite']);
+        Route::post('yeu-thich/remove', [YeuThichController::class, 'removeFavorite']);
+        Route::get('yeu-thich/ids', [YeuThichController::class, 'getFavoriteIds']);
+
+        //Hồ sơ cá nhân & Sổ địa chỉ (UC04)
+        Route::get('profile', [KhachHangController::class, 'getProfile']);
+        Route::post('profile/update', [KhachHangController::class, 'updateProfile']);
+        Route::post('profile/change-password', [KhachHangController::class, 'changePassword']);
+        Route::post('profile/add-address', [KhachHangController::class, 'addAddress']);
+        Route::post('profile/delete-address', [KhachHangController::class, 'deleteAddress']);
+        Route::delete('profile/address/{id}', [KhachHangController::class, 'deleteAddress']);
 
         //Danh mục & Thương hiệu
         Route::get('danh-muc/get-data', [DanhMucController::class, 'getDataClient']);

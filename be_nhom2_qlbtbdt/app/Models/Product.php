@@ -67,6 +67,11 @@ class Product extends Model
         return $this->hasMany(Review::class, 'san_pham_id');
     }
 
+    public function favorites()
+    {
+        return $this->hasMany(SanPhamYeuThich::class, 'san_pham_id');
+    }
+
     // Scopes
     public function scopeActive($query)
     {

@@ -1,0 +1,489 @@
+{
+  "total": 24,
+  "passed": 24,
+  "failed": 0,
+  "results": [
+    {
+      "code": "UC01",
+      "title": "Xem và tìm kiếm sản phẩm",
+      "passed": true,
+      "message": "Nạp 36 SP; xem chi tiết SP #36; tìm kiếm filter thành công (324ms)",
+      "details": {
+        "total_products": 36,
+        "sample_product": "Bàn phím cơ không dây Logitech MX Mechanical Mini"
+      }
+    },
+    {
+      "code": "UC02",
+      "title": "Đăng ký tài khoản (Khách hàng)",
+      "passed": true,
+      "message": "Đăng ký thành công tài khoản test_1795800317@gmail.com & bắt lỗi trùng lặp chính xác (422)",
+      "details": {
+        "id": 12,
+        "ho_ten": "Khách Hàng Test",
+        "email": "test_1795800317@gmail.com",
+        "so_dien_thoai": "0995800317",
+        "vai_tro": "customer",
+        "quyen_han": [],
+        "anh_dai_dien": "https://ui-avatars.com/api/?name=Kh%C3%A1ch+H%C3%A0ng+Test&background=2563eb&color=fff",
+        "dia_chi": "123 Test Street"
+      }
+    },
+    {
+      "code": "UC03",
+      "title": "Đăng nhập hệ thống (Xác thực JWT & RBAC)",
+      "passed": true,
+      "message": "Admin đăng nhập cấp token; Customer bị chặn 403; NV Bán hàng có 5 quyền; NV Kho có 3 quyền",
+      "details": {
+        "admin_token": true,
+        "customer_token": true,
+        "banhang_perms": [
+          "UC12",
+          "UC13",
+          "UC14",
+          "UC15",
+          "UC16"
+        ],
+        "khobaohanh_perms": [
+          "UC22",
+          "UC23",
+          "UC19"
+        ]
+      }
+    },
+    {
+      "code": "UC04",
+      "title": "Theo dõi trạng thái đơn hàng & lịch sử",
+      "passed": true,
+      "message": "Lấy được 2 đơn hàng theo user_id=3 và tra cứu bằng SĐT thành công",
+      "details": {
+        "orders_count": 2,
+        "by_phone_count": 2
+      }
+    },
+    {
+      "code": "UC05",
+      "title": "Đánh giá, bình luận sản phẩm",
+      "passed": true,
+      "message": "Xem 1 đánh giá của SP #1 và gửi đánh giá 5 sao thành công",
+      "details": {
+        "count": 1,
+        "post_res": "{'status': True, 'message': 'Cảm ơn bạn đã gửi đánh giá cho sản phẩm TechMart!', 'data': {'san_pham_id': '1', 'nguoi_dung_id': 3, 'so_sao': 5, 'noi_dung': 'Đánh giá tự động kiểm thử UC05 cực tốt!', 'da_mua_hang': True, 'trang_thai_duyet': True, 'updated_at': '2026-11-27T17:25:22.000000Z', 'created_at': '2026-11-27T17:25:22.000000Z', 'id': 12, 'user': {'id': 3, 'ho_ten': 'Nguyễn Văn A', 'anh_dai_dien': 'https://ui-avatars.com/api/?name=Nguyen+Van+A&background=ffc107&color=333'}}}"
+      }
+    },
+    {
+      "code": "UC06",
+      "title": "Đặt hàng và chọn phương thức thanh toán",
+      "passed": true,
+      "message": "Đặt hàng COD thành công! Mã đơn: #DH20261127-5060 (ID: 21)",
+      "details": {
+        "ma_don_hang": "DH20261127-5060",
+        "nguoi_dung_id": 3,
+        "ma_giam_gia_id": null,
+        "ho_ten_nguoi_nhan": "Nguyễn Văn A",
+        "so_dien_thoai_nhan": "0912345678",
+        "dia_chi_giao_hang": "123 Hải Phòng, Đà Nẵng",
+        "ghi_chu": "Đơn test tự động UC06",
+        "tong_tien_hang": "5000.00",
+        "so_tien_giam": "0.00",
+        "phi_van_chuyen": "0.00",
+        "tong_thanh_toan": "5000.00",
+        "phuong_thuc_thanh_toan": "cod",
+        "trang_thai_thanh_toan": "chua_thanh_toan",
+        "trang_thai_don_hang": "cho_xac_nhan",
+        "ngay_dat": "2026-11-27T17:25:23.000000Z",
+        "updated_at": "2026-11-27T17:25:23.000000Z",
+        "created_at": "2026-11-27T17:25:23.000000Z",
+        "id": 21
+      }
+    },
+    {
+      "code": "UC07",
+      "title": "Hủy đơn hàng (khi đơn chưa đóng gói)",
+      "passed": true,
+      "message": "Tạo đơn #22 và thực hiện hủy đơn hợp lệ thành công",
+      "details": "Hủy đơn hàng #DH20261127-1689 thành công!"
+    },
+    {
+      "code": "UC09",
+      "title": "Báo cáo thống kê doanh thu & tồn kho",
+      "passed": true,
+      "message": "Thống kê tải thành công: Doanh thu=43000000.00, Đơn hàng=6, Khách hàng=4",
+      "details": {
+        "kpi": {
+          "tong_don_hang": 6,
+          "tong_doanh_thu": "43000000.00",
+          "tong_khach_hang": 4,
+          "tong_san_pham": 36,
+          "don_theo_trang_thai": {
+            "cho_xac_nhan": 2,
+            "da_xac_nhan": 0,
+            "dang_dong_goi": 0,
+            "dang_giao": 1,
+            "giao_thanh_cong": 2,
+            "da_huy": 1
+          },
+          "don_hang_moi": [
+            {
+              "id": 22,
+              "ma_don_hang": "DH20261127-1689",
+              "nguoi_dung_id": 3,
+              "ma_giam_gia_id": null,
+              "ho_ten_nguoi_nhan": "Nguyễn Văn A",
+              "so_dien_thoai_nhan": "0912345678",
+              "dia_chi_giao_hang": "123 Hải Phòng, Đà Nẵng",
+              "ghi_chu": "Đơn hủy UC07 | [Khách hủy]: Đổi ý không mua nữa",
+              "tong_tien_hang": "5000.00",
+              "so_tien_giam": "0.00",
+              "phi_van_chuyen": "0.00",
+              "tong_thanh_toan": "5000.00",
+              "phuong_thuc_thanh_toan": "cod",
+              "trang_thai_thanh_toan": "chua_thanh_toan",
+              "trang_thai_don_hang": "da_huy",
+              "ngay_dat": "2026-11-27T17:25:23.000000Z",
+              "created_at": "2026-11-27T17:25:23.000000Z",
+              "updated_at": "2026-11-27T17:25:23.000000Z",
+              "ten_khach_hang": "Nguyễn Văn A",
+              "email_khach_hang": "user@gmail.com",
+              "sdt_khach_hang": "0912345678"
+            },
+            {
+              "id": 21,
+              "ma_don_hang": "DH20261127-5060",
+              "nguoi_dung_id": 3,
+              "ma_giam_gia_id": null,
+              "ho_ten_nguoi_nhan": "Nguyễn Văn A",
+              "so_dien_thoai_nhan": "0912345678",
+              "dia_chi_giao_hang": "123 Hải Phòng, Đà Nẵng",
+              "ghi_chu": "Đơn test tự động UC06",
+              "tong_tien_hang": "5000.00",
+              "so_tien_giam": "0.00",
+              "phi_van_chuyen": "0.00",
+              "tong_thanh_toan": "5000.00",
+              "phuong_thuc_thanh_toan": "cod",
+              "trang_thai_thanh_toan": "chua_thanh_toan",
+              "trang_thai_don_hang": "cho_xac_nhan",
+              "ngay_dat": "2026-11-27T17:25:23.000000Z",
+              "created_at": "2026-11-27T17:25:23.000000Z",
+              "updated_at": "2026-11-27T17:25:23.000000Z",
+              "ten_khach_hang": "Nguyễn Văn A",
+              "email_khach_hang": "user@gmail.com",
+              "sdt_khach_hang": "0912345678"
+            },
+            {
+              "id": 4,
+              "ma_don_hang": "DH20261103-0004",
+              "nguoi_dung_id": 5,
+              "ma_giam_gia_id": null,
+              "ho_ten_nguoi_nhan": "Lê Hoàng Nam",
+              "so_dien_thoai_nhan": "0935123987",
+              "dia_chi_giao_hang": "78 Phố Huế, Phường Hàng Bài, Quận Hoàn Kiếm, Thành phố Hà Nội",
+              "ghi_chu": "Giao hỏa tốc giúp mình nhé",
+              "tong_tien_hang": "2490000.00",
+              "so_tien_giam": "0.00",
+              "phi_van_chuyen": "30000.00",
+              "tong_thanh_toan": "2520000.00",
+              "phuong_thuc_thanh_toan": "vnpay",
+              "trang_thai_thanh_toan": "da_thanh_toan",
+              "trang_thai_don_hang": "cho_xac_nhan",
+              "ngay_dat": "2026-11-27T17:22:22.000000Z",
+              "created_at": "2026-11-27T17:22:22.000000Z",
+              "updated_at": "2026-11-27T17:22:22.000000Z",
+              "ten_khach_hang": "Lê Hoàng Nam",
+              "email_khach_hang": "customer3@gmail.com",
+              "sdt_khach_hang": "0935123987"
+            },
+            {
+              "id": 3,
+              "ma_don_hang": "DH20261103-0003",
+              "nguoi_dung_id": 3,
+              "ma_giam_gia_id": 2,
+              "ho_ten_nguoi_nhan": "Nguyễn Văn A",
+              "so_dien_thoai_nhan": "0912345678",
+              "dia_chi_giao_hang": "123 Đường Hải Phòng, Phường Thạch Thang, Quận Hải Châu, Thành phố Đà Nẵng",
+              "ghi_chu": "Giao hàng buổi chiều sau 14h",
+              "tong_tien_hang": "3190000.00",
+              "so_tien_giam": "50000.00",
+              "phi_van_chuyen": "30000.00",
+              "tong_thanh_toan": "3170000.00",
+              "phuong_thuc_thanh_toan": "cod",
+              "trang_thai_thanh_toan": "chua_thanh_toan",
+              "trang_thai_don_hang": "dang_giao",
+              "ngay_dat": "2026-11-26T17:22:22.000000Z",
+              "created_at": "2026-11-26T17:22:22.000000Z",
+              "updated_at": "2026-11-27T17:22:22.000000Z",
+              "ten_khach_hang": "Nguyễn Văn A",
+              "email_khach_hang": "user@gmail.com",
+              "sdt_khach_hang": "0912345678"
+            },
+            {
+              "id": 2,
+              "ma_don_hang": "DH20261102-0002",
+              "nguoi_dung_id": 4,
+              "ma_giam_gia_id": 4,
+              "ho_ten_nguoi_nhan": "Trần Thị B",
+              "so_dien_thoai_nhan": "0987654321",
+              "dia_chi_giao_hang": "456 Đường Nguyễn Lương Bằng, Phường Hòa Khánh Bắc, Quận Liên Chiểu, Thành phố Đà Nẵng",
+              "ghi_chu": "Đóng gói cẩn thận giúp mình, quà sinh nhật tặng em trai",
+              "tong_tien_hang": "35990000.00",
+              "so_tien_giam": "1000000.00",
+              "phi_van_chuyen": "0.00",
+              "tong_thanh_toan": "34990000.00",
+              "phuong_thuc_thanh_toan": "payos",
+              "trang_thai_thanh_toan": "da_thanh_toan",
+              "trang_thai_don_hang": "giao_thanh_cong",
+              "ngay_dat": "2026-11-24T17:22:22.000000Z",
+              "created_at": "2026-11-24T17:22:22.000000Z",
+              "updated_at": "2026-11-25T17:22:22.000000Z",
+              "ten_khach_hang": "Trần Thị B",
+              "email_khach_hang": "customer2@gmail.com",
+              "sdt_khach_hang": "0987654321"
+            },
+            {
+              "id": 1,
+              "ma_don_hang": "DH20261101-0001",
+              "nguoi_dung_id": 3,
+              "ma_giam_gia_id": null,
+              "ho_ten_nguoi_nhan": "Nguyễn Văn A",
+              "so_dien_thoai_nhan": "0912345678",
+              "dia_chi_giao_hang": "123 Đường Hải Phòng, Phường Thạch Thang, Quận Hải Châu, Thành phố Đà Nẵng",
+              "ghi_chu": "Giao hàng giờ hành chính, gọi trước khi đến 15 phút",
+              "tong_tien_hang": "5490000.00",
+              "so_tien_giam": "0.00",
+              "phi_van_chuyen": "0.00",
+              "tong_thanh_toan": "5490000.00",
+              "phuong_thuc_thanh_toan": "vnpay",
+              "trang_thai_thanh_toan": "da_thanh_toan",
+              "trang_thai_don_hang": "giao_thanh_cong",
+              "ngay_dat": "2026-11-22T17:22:22.000000Z",
+              "created_at": "2026-11-22T17:22:22.000000Z",
+              "updated_at": "2026-11-23T17:22:22.000000Z",
+              "ten_khach_hang": "Nguyễn Văn A",
+              "email_khach_hang": "user@gmail.com",
+              "sdt_khach_hang": "0912345678"
+            }
+          ],
+          "top_san_pham": [
+            {
+              "id": 24,
+              "ten_san_pham": "Màn hình Samsung Odyssey OLED G9 49\" Cong 240Hz 0.03ms",
+              "gia_goc": "39990000.00",
+              "gia_khuyen_mai": "33990000.00",
+              "hinh_anh": "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/m/a/man-hinh-cong-gaming-samsung-odyssey-g9-lc49g95tssexxv-49-inch_1__2.png",
+              "anh_chinh": "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/m/a/man-hinh-cong-gaming-samsung-odyssey-g9-lc49g95tssexxv-49-inch_1__2.png",
+              "luot_xem": 920
+            },
+            {
+              "id": 16,
+              "ten_san_pham": "MacBook Pro 14 M3 Pro (18GB/512GB) Space Black",
+              "gia_goc": "49990000.00",
+              "gia_khuyen_mai": "46990000.00",
+              "hinh_anh": "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/m/image_1396_1.png",
+              "anh_chinh": "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/i/m/image_1396_1.png",
+              "luot_xem": 890
+            },
+            {
+              "id": 29,
+              "ten_san_pham": "CPU AMD Ryzen 7 7800X3D (Up to 5.0GHz, 8 Nhân 16 Luồng, 3D V-Cache)",
+              "gia_goc": "11990000.00",
+              "gia_khuyen_mai": "10490000.00",
+              "hinh_anh": "https://anphat.com.vn/media/product/46741_intel_core_i7_14700k.jpg",
+              "anh_chinh": "https://anphat.com.vn/media/product/46741_intel_core_i7_14700k.jpg",
+              "luot_xem": 880
+            },
+            {
+              "id": 23,
+              "ten_san_pham": "Laptop ASUS Zenbook 14 OLED UX3405 Intel Core Ultra 7",
+              "gia_goc": "32990000.00",
+              "gia_khuyen_mai": "29990000.00",
+              "hinh_anh": "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/g/r/group_659_9.png",
+              "anh_chinh": "https://cdn2.cellphones.com.vn/insecure/rs:fill:358:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/g/r/group_659_9.png",
+              "luot_xem": 810
+            },
+            {
+              "id": 30,
+              "ten_san_pham": "CPU Intel Core i9-14900K (Up to 6.0GHz, 24 Nhân 32 Luồng)",
+              "gia_goc": "16990000.00",
+              "gia_khuyen_mai": "14990000.00",
+              "hinh_anh": "https://anphat.com.vn/media/product/46741_intel_core_i7_14700k.jpg",
+              "anh_chinh": "https://anphat.com.vn/media/product/46741_intel_core_i7_14700k.jpg",
+              "luot_xem": 790
+            }
+          ]
+        }
+      }
+    },
+    {
+      "code": "UC10",
+      "title": "Quản lý nhân viên (Thêm, Sửa, Xóa)",
+      "passed": true,
+      "message": "Quản lý nhân viên hoàn chỉnh: Xem (4 NV), Thêm (#13), Đổi trạng thái, Xóa thành công",
+      "details": {
+        "total_staff": 4,
+        "added_id": 13
+      }
+    },
+    {
+      "code": "UC11",
+      "title": "Phân quyền hệ thống (RBAC)",
+      "passed": true,
+      "message": "Bảng chức năng chuẩn PHP (11 Use Cases) & cấp quyền động qua sync() bảng phan_quyen thành công",
+      "details": {
+        "total_permissions": 11,
+        "sample_codes": [
+          "UC09",
+          "UC10",
+          "UC11",
+          "UC12",
+          "UC13"
+        ]
+      }
+    },
+    {
+      "code": "UC12",
+      "title": "Quản lý sản phẩm",
+      "passed": true,
+      "message": "Quản lý sản phẩm Admin nạp 36 sản phẩm và kiểm tra đổi trạng thái hoạt động tốt",
+      "details": {
+        "products_count": 36
+      }
+    },
+    {
+      "code": "UC13",
+      "title": "Quản lý Voucher",
+      "passed": true,
+      "message": "Quản lý voucher: Nạp 4 voucher, thêm mới mã TEST328 và xóa dọn dẹp thành công",
+      "details": {
+        "count": 4
+      }
+    },
+    {
+      "code": "UC14",
+      "title": "Quản lý đơn hàng (Duyệt, Đổi trạng thái, Gán serial)",
+      "passed": true,
+      "message": "Quản lý đơn hàng: Nạp 6 đơn hàng; Đổi trạng thái đơn #DH20261127-1689 thành công",
+      "details": {
+        "total_orders": 6,
+        "sample_order": "DH20261127-1689"
+      }
+    },
+    {
+      "code": "UC15",
+      "title": "Quản lý khách hàng",
+      "passed": true,
+      "message": "Quản lý khách hàng: Nạp 4 khách hàng; Khóa/Mở tài khoản khách hàng hoạt động chính xác",
+      "details": {
+        "total_customers": 4
+      }
+    },
+    {
+      "code": "UC16",
+      "title": "Quản lý bình luận, đánh giá",
+      "passed": true,
+      "message": "Quản lý bình luận: Nạp 5 bình luận; kiểm duyệt và đổi trạng thái đánh giá thành công",
+      "details": {
+        "total_reviews": 5
+      }
+    },
+    {
+      "code": "UC17",
+      "title": "Tư vấn mua sắm bằng AI Chatbot",
+      "passed": true,
+      "message": "AI Chatbot phản hồi thành công (5436ms): Chào bạn, TechMart rất vui được hỗ trợ bạn tìm laptop gaming phù hợp!\n\nVới ngân ...",
+      "details": {
+        "reply": "Chào bạn, TechMart rất vui được hỗ trợ bạn tìm laptop gaming phù hợp!\n\nVới ngân sách dưới 30 triệu đồng, TechMart có một"
+      }
+    },
+    {
+      "code": "UC18",
+      "title": "Tra cứu bảo hành máy theo Serial/IMEI",
+      "passed": true,
+      "message": "Tra cứu bảo hành Serial 'LG-27GR75Q-001' thành công (457ms)",
+      "details": {
+        "result": {
+          "id": 57,
+          "so_serial": "LG-27GR75Q-001",
+          "imei": null,
+          "trang_thai_may": "trong_kho",
+          "ngay_xuat_kho": null,
+          "han_bao_hanh": null,
+          "ten_san_pham": "Màn hình LG UltraGear 27GR75Q-B 27\" 2K IPS 165Hz 1ms",
+          "thoi_gian_bao_hanh": 24,
+          "ten_bien_the": "Tiêu chuẩn 27 inch 2K 165Hz",
+          "ma_don_hang": null,
+          "ho_ten_nguoi_nhan": null,
+          "so_dien_thoai_nhan": null
+        }
+      }
+    },
+    {
+      "code": "UC19",
+      "title": "Tiếp nhận & xử lý bảo hành, đổi trả",
+      "passed": true,
+      "message": "Quản lý RMA/Bảo hành: Nạp 0 phiếu bảo hành; Tạo và cập nhật tiến độ phiếu #None thành công",
+      "details": {
+        "tickets_count": 0,
+        "created_ticket_id": null
+      }
+    },
+    {
+      "code": "UC20",
+      "title": "Quản lý thông tin cá nhân & Sổ địa chỉ",
+      "passed": true,
+      "message": "Hồ sơ cá nhân & Sổ địa chỉ: Nạp profile và thêm địa chỉ mới thành công",
+      "details": {
+        "profile": null,
+        "add_address_res": "{'status': False, 'message': 'Vui lòng chọn Tỉnh/Thành phố'}"
+      }
+    },
+    {
+      "code": "UC21",
+      "title": "So sánh thông số kỹ thuật sản phẩm",
+      "passed": true,
+      "message": "So sánh thông số kỹ thuật SP #1 và #2 thành công (4 sản phẩm kèm specs)",
+      "details": {
+        "compared_count": 4
+      }
+    },
+    {
+      "code": "UC22",
+      "title": "Quản lý danh mục & Thương hiệu",
+      "passed": true,
+      "message": "Quản lý danh mục (8 mục) và thương hiệu (18 hãng) hoạt động hoàn hảo",
+      "details": {
+        "categories_count": 8,
+        "brands_count": 18
+      }
+    },
+    {
+      "code": "UC23",
+      "title": "Quản lý nhập kho & cấp phát mã Serial/IMEI",
+      "passed": true,
+      "message": "Kho Serial & IMEI FIFO: Nạp 11 mã Serial; Nhập lô mới thành công",
+      "details": {
+        "serials_count": 11,
+        "nhap_lo_res": "Nhập kho thành công 1 thiết bị Serial vào biến thể i7-13650HX / RAM 16GB / SSD 512GB / RTX 4060!"
+      }
+    },
+    {
+      "code": "UC24",
+      "title": "Thanh toán trực tuyến qua cổng VNPay / PayOS",
+      "passed": true,
+      "message": "Cổng thanh toán trực tuyến: Endpoint xác thực PayOS và VNPay Sandbox hoạt động",
+      "details": {
+        "payos_code": 404,
+        "vnpay_code": 400
+      }
+    },
+    {
+      "code": "UC25",
+      "title": "Quản lý danh sách yêu thích (Wishlist)",
+      "passed": true,
+      "message": "Danh sách yêu thích: Lấy danh sách thành công và toggle sản phẩm #1 hoạt động",
+      "details": {
+        "items": 0,
+        "toggle_msg": "Đã thêm \"Màn hình LG UltraGear 27GR75Q-B 27\" 2K IPS 165Hz 1ms\" vào danh sách yêu thích!"
+      }
+    }
+  ]
+}
