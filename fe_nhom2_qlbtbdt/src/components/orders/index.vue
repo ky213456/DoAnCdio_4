@@ -1,5 +1,9 @@
 <template>
   <div class="orders-page-wrapper">
+    <div v-if="liveToast" class="position-fixed top-0 end-0 m-3 px-3 py-2 rounded-3 shadow-lg bg-dark text-white d-flex align-items-center gap-2" style="z-index: 2000; font-size: 13px;">
+      <i class="bi bi-broadcast text-info"></i>
+      <span>{{ liveToast }}</span>
+    </div>
     <!-- ========================================== -->
     <!-- ❶ HEADER TOPBAR & BREADCRUMB -->
     <!-- ========================================== -->
@@ -19,7 +23,13 @@
         </div>
 
         <div class="header-right">
-          <router-link to="/cart" class="btn-top-cart me-3">
+          <router-link to="/warranty" class="btn-top-cart">
+            <i class="bi bi-shield-check me-1 text-info"></i> Bảo hành
+          </router-link>
+          <router-link to="/profile" class="btn-top-cart" v-if="currentUser">
+            <i class="bi bi-person me-1 text-primary"></i> Hồ sơ
+          </router-link>
+          <router-link to="/cart" class="btn-top-cart">
             <i class="bi bi-cart3 me-1"></i> Giỏ hàng
           </router-link>
           <div class="user-info-pill" v-if="currentUser">
@@ -270,10 +280,19 @@
                   <span class="serial-code">
                     <i class="bi bi-upc-scan me-1 text-primary"></i>
                     Serial: <strong>{{ s.so_serial }}</strong>
+                    <span v-if="s.imei" class="ms-2 text-secondary">| IMEI: <strong>{{ s.imei }}</strong></span>
                   </span>
                   <span class="serial-expiry text-muted small ms-2" v-if="s.han_bao_hanh">
-                    (Bảo hành đến: {{ s.han_bao_hanh }})
+                    (BH đến: {{ s.han_bao_hanh }})
                   </span>
+                  <router-link
+                    :to="'/warranty?serial=' + encodeURIComponent(s.so_serial)"
+                    class="btn btn-sm btn-outline-primary py-0 px-2 ms-2"
+                    style="font-size: 11.5px;"
+                    title="Kiểm tra phiếu bảo hành điện tử"
+                  >
+                    <i class="bi bi-shield-check me-1"></i>Tra cứu BH
+                  </router-link>
                 </div>
               </div>
             </div>
@@ -536,14 +555,78 @@ export default {
       cancelReason: 'Muốn thay đổi địa chỉ nhận hàng',
       customCancelReason: '',
       isCancelling: false,
-      cancelError: ''
+      cancelError: '',
+
+      // Realtime sync
+      liveToast: '',
+      _liveToastTimer: null,
+      _pollTimer: null,
+      _bc: null,
+      _storageHandler: null,
+      _visHandler: null
     }
   },
   mounted() {
     this.loadUserData()
     this.loadOrders()
+    this.initRealtimeSync()
+  },
+  beforeUnmount() {
+    if (this._pollTimer) clearInterval(this._pollTimer)
+    if (this._liveToastTimer) clearTimeout(this._liveToastTimer)
+    if (this._bc) {
+      try { this._bc.close() } catch (e) {}
+    }
+    if (this._storageHandler) window.removeEventListener('storage', this._storageHandler)
+    if (this._visHandler) document.removeEventListener('visibilitychange', this._visHandler)
   },
   methods: {
+    initRealtimeSync() {
+      try {
+        if (typeof BroadcastChannel !== 'undefined') {
+          this._bc = new BroadcastChannel('techmart_realtime')
+          this._bc.onmessage = (ev) => {
+            if (ev.data?.type === 'ORDER_STATUS_UPDATED' || ev.data?.type === 'ORDER_CREATED') {
+              this.loadOrders(true)
+            }
+          }
+        }
+      } catch (e) {}
+
+      this._storageHandler = (ev) => {
+        if (ev.key === 'techmart_realtime_ping') {
+          this.loadOrders(true)
+        }
+      }
+      window.addEventListener('storage', this._storageHandler)
+
+      this._visHandler = () => {
+        if (!document.hidden) this.loadOrders(true)
+      }
+      document.addEventListener('visibilitychange', this._visHandler)
+
+      this._pollTimer = setInterval(() => {
+        if (!document.hidden) this.loadOrders(true)
+      }, 3000)
+    },
+
+    showLiveToast(msg) {
+      this.liveToast = msg
+      if (this._liveToastTimer) clearTimeout(this._liveToastTimer)
+      this._liveToastTimer = setTimeout(() => { this.liveToast = '' }, 4000)
+    },
+
+    broadcastOrderEvent(type, payload = {}) {
+      try {
+        if (typeof BroadcastChannel !== 'undefined') {
+          const bc = new BroadcastChannel('techmart_realtime')
+          bc.postMessage({ type, ...payload, ts: Date.now() })
+          bc.close()
+        }
+        localStorage.setItem('techmart_realtime_ping', JSON.stringify({ type, ...payload, ts: Date.now() }))
+      } catch (e) {}
+    },
+
     loadUserData() {
       const stored = localStorage.getItem('customer_user') || localStorage.getItem('admin_user')
       if (stored) {
@@ -556,10 +639,11 @@ export default {
       }
     },
 
-    async loadOrders() {
-      this.isLoading = true
+    async loadOrders(silent = false) {
+      if (!silent) this.isLoading = true
       const userId = localStorage.getItem('user_id') || (this.currentUser ? this.currentUser.id : null)
       const phone = this.lookupPhone || (this.currentUser ? this.currentUser.so_dien_thoai : '')
+      const prevMap = new Map(this.allOrders.map(o => [o.id, o.trang_thai_don_hang]))
 
       try {
         const res = await axios.get('http://127.0.0.1:8000/api/client/don-hang/danh-sach', {
@@ -570,15 +654,29 @@ export default {
         })
 
         if (res.data && res.data.status && Array.isArray(res.data.data)) {
-          this.allOrders = res.data.data
-        } else {
+          const incoming = res.data.data
+          if (silent && prevMap.size > 0) {
+            for (const o of incoming) {
+              const oldStatus = prevMap.get(o.id)
+              if (oldStatus && oldStatus !== o.trang_thai_don_hang) {
+                this.showLiveToast(`Đơn #${o.ma_don_hang} vừa cập nhật: ${this.getStatusLabel(o.trang_thai_don_hang)}`)
+                break
+              }
+            }
+          }
+          this.allOrders = incoming
+          if (this.selectedOrderForDetail) {
+            const refreshed = incoming.find(o => o.id === this.selectedOrderForDetail.id)
+            if (refreshed) this.selectedOrderForDetail = refreshed
+          }
+        } else if (!silent) {
           this.allOrders = []
         }
       } catch (err) {
         console.warn('Lỗi khi nạp đơn hàng:', err)
-        this.allOrders = []
+        if (!silent) this.allOrders = []
       } finally {
-        this.isLoading = false
+        if (!silent) this.isLoading = false
         this.filterOrders()
       }
     },
@@ -601,7 +699,13 @@ export default {
 
       // Lọc theo tab trạng thái
       if (this.currentTab !== 'all') {
-        list = list.filter(o => o.trang_thai_don_hang === this.currentTab)
+        if (this.currentTab === 'dang_xu_ly') {
+          list = list.filter(o => ['dang_xu_ly', 'da_xac_nhan', 'dang_dong_goi'].includes(o.trang_thai_don_hang))
+        } else if (this.currentTab === 'da_giao') {
+          list = list.filter(o => ['da_giao', 'giao_thanh_cong'].includes(o.trang_thai_don_hang))
+        } else {
+          list = list.filter(o => o.trang_thai_don_hang === this.currentTab)
+        }
       }
 
       // Lọc theo từ khóa tìm kiếm (Mã đơn hoặc Tên sản phẩm)
@@ -619,6 +723,12 @@ export default {
     },
 
     getCountByStatus(status) {
+      if (status === 'dang_xu_ly') {
+        return this.allOrders.filter(o => ['dang_xu_ly', 'da_xac_nhan', 'dang_dong_goi'].includes(o.trang_thai_don_hang)).length
+      }
+      if (status === 'da_giao') {
+        return this.allOrders.filter(o => ['da_giao', 'giao_thanh_cong'].includes(o.trang_thai_don_hang)).length
+      }
       return this.allOrders.filter(o => o.trang_thai_don_hang === status).length
     },
 
@@ -626,9 +736,12 @@ export default {
       const map = {
         'cho_xac_nhan': 'Chờ xác nhận',
         'pending': 'Chờ xử lý',
+        'da_xac_nhan': 'Đã xác nhận',
+        'dang_dong_goi': 'Đang đóng gói',
         'dang_xu_ly': 'Đang xử lý',
         'dang_giao': 'Đang giao hàng',
         'da_giao': 'Giao thành công',
+        'giao_thanh_cong': 'Giao thành công',
         'da_huy': 'Đã hủy'
       }
       return map[status] || 'Đang xử lý'
@@ -638,9 +751,12 @@ export default {
       const map = {
         'cho_xac_nhan': 'bi bi-clock-history',
         'pending': 'bi bi-hourglass-split',
+        'da_xac_nhan': 'bi bi-check2-circle',
+        'dang_dong_goi': 'bi bi-box-seam',
         'dang_xu_ly': 'bi bi-box-seam',
         'dang_giao': 'bi bi-truck',
         'da_giao': 'bi bi-check-circle-fill',
+        'giao_thanh_cong': 'bi bi-check-circle-fill',
         'da_huy': 'bi bi-x-circle-fill'
       }
       return map[status] || 'bi bi-info-circle'
@@ -698,7 +814,10 @@ export default {
         })
 
         if (res.data && res.data.status) {
-          alert(`Hủy đơn hàng #${this.orderToCancel.ma_don_hang} thành công!`)
+          const cancelledCode = this.orderToCancel.ma_don_hang
+          const cancelledId = this.orderToCancel.id
+          this.broadcastOrderEvent('ORDER_CANCELLED', { orderId: cancelledId, maDonHang: cancelledCode })
+          alert(`Hủy đơn hàng #${cancelledCode} thành công!`)
           this.closeCancelModal()
           await this.loadOrders()
         } else {
@@ -785,16 +904,32 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 16px;
   height: 70px;
 }
 
-.brand-logo {
+.header-left {
   display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: nowrap;
+}
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.brand-logo {
+  display: inline-flex;
   align-items: center;
   text-decoration: none;
   font-weight: 800;
   font-size: 1.25rem;
   color: #0f172a;
+  white-space: nowrap;
 }
 
 .logo-icon {
@@ -845,25 +980,47 @@ export default {
 }
 
 .btn-top-cart {
+  display: inline-flex;
+  align-items: center;
   color: #0f172a;
   text-decoration: none;
-  font-size: 0.9rem;
+  font-size: 0.88rem;
   font-weight: 600;
-  padding: 6px 14px;
+  padding: 7px 14px;
   border-radius: 8px;
   background: #f1f5f9;
+  white-space: nowrap;
+  transition: all 0.2s ease;
 }
 
 .btn-top-cart:hover {
   background: #e2e8f0;
+  color: #2563eb;
 }
 
 .user-info-pill {
+  display: inline-flex;
+  align-items: center;
   background: #f1f5f9;
-  padding: 6px 14px;
+  padding: 7px 14px;
   border-radius: 20px;
   font-size: 0.88rem;
   font-weight: 600;
+  white-space: nowrap;
+  border: 1px solid #e2e8f0;
+}
+
+.btn-login-link {
+  display: inline-flex;
+  align-items: center;
+  background: #2563eb;
+  color: #ffffff;
+  padding: 7px 16px;
+  border-radius: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
 }
 
 /* Headline */
@@ -893,7 +1050,8 @@ export default {
 
 .search-orders-box {
   width: 100%;
-  max-width: 380px;
+  max-width: 440px;
+  min-width: 340px;
 }
 
 /* Guest lookup card */

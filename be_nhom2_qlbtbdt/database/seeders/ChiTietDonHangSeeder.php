@@ -13,7 +13,7 @@ class ChiTietDonHangSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('chi_tiet_don_hang')->truncate();
+        DB::table('chi_tiet_don_hang')->delete();
 
         $chiTiets = [
             // Chi tiết đơn hàng 1: Màn hình LG

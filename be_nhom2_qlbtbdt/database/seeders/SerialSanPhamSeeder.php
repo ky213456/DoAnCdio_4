@@ -13,7 +13,7 @@ class SerialSanPhamSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('serial_san_pham')->truncate();
+        DB::table('serial_san_pham')->delete();
 
         $serials = [
             // Serial cho Màn hình LG (bien_the_id = 7)

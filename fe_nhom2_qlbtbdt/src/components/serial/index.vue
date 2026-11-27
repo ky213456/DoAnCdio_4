@@ -1,9 +1,9 @@
 <template>
-  <div class="serial-layout">
+  <div :class="embedded ? 'serial-embedded' : 'serial-layout'">
     <!-- ========================================== -->
     <!-- 1. THANH ĐIỀU HƯỚNG TRÁI (ADMIN SIDEBAR)    -->
     <!-- ========================================== -->
-    <aside class="admin-sidebar shadow-sm">
+    <aside v-if="!embedded" class="admin-sidebar shadow-sm">
       <div class="sidebar-brand">
         <router-link to="/admin" class="d-flex align-items-center text-decoration-none">
           <div class="bg-primary text-white p-2 rounded-3 me-3 d-flex align-items-center justify-content-center shadow-sm">
@@ -59,9 +59,9 @@
     <!-- ========================================== -->
     <!-- 2. KHU VỰC NỘI DUNG CHÍNH (MAIN CONTENT)    -->
     <!-- ========================================== -->
-    <main class="serial-main">
+    <main :class="embedded ? 'serial-main-embedded' : 'serial-main'">
       <!-- TOPBAR -->
-      <header class="serial-topbar shadow-sm">
+      <header v-if="!embedded" class="serial-topbar shadow-sm">
         <div class="d-flex align-items-center">
           <h1 class="h5 fw-bold mb-0 text-dark">
             <i class="bi bi-upc-scan text-primary me-2"></i>
@@ -84,7 +84,22 @@
       </header>
 
       <!-- CONTENT BODY -->
-      <div class="serial-content">
+      <div :class="embedded ? 'serial-content-embedded' : 'serial-content'">
+        <div v-if="embedded" class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4">
+          <div>
+            <div class="text-primary fw-bold small mb-1">QUẢN LÝ KHO ĐỊNH DANH TỪNG THIẾT BỊ VẬT LÝ</div>
+            <h2 class="fw-bold text-dark mb-1">Kho Serial & IMEI FIFO (UC23)</h2>
+            <p class="text-muted small mb-0">Nhập lô Serial/IMEI vào kho, kiểm tra trạng thái và gán FIFO cho đơn hàng.</p>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-outline-secondary btn-sm bg-white" @click="loadData(true)" :disabled="isLoading">
+              <i class="bi bi-arrow-clockwise me-1" :class="{ 'spin-anim': isLoading }"></i> Đồng bộ kho
+            </button>
+            <button class="btn btn-primary btn-sm px-3 fw-bold" @click="openBatchImportModal">
+              <i class="bi bi-plus-lg me-1"></i> Nhập lô Serial/IMEI mới
+            </button>
+          </div>
+        </div>
         <!-- Toast Thông báo -->
         <div
           v-if="alertMessage"
@@ -495,6 +510,9 @@ import apiUrl from '../../utils/api'
 
 export default {
   name: 'SerialManagementPage',
+  props: {
+    embedded: { type: Boolean, default: false }
+  },
   data() {
     return {
       isLoading: false,

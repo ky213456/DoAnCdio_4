@@ -13,7 +13,7 @@ class ThanhToanSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('thanh_toan')->truncate();
+        DB::table('thanh_toan')->delete();
 
         $thanhToans = [
             // Thanh toán đơn 1: VNPAY thành công
