@@ -7,11 +7,13 @@ use App\Models\ChiTietDonHang;
 use App\Models\DonHang;
 use App\Models\GioHang;
 use App\Models\MaGiamGia;
+use App\Models\SerialSanPham;
 use App\Models\ThanhToan;
 use App\Services\PayOsService;
 use App\Services\VnPayService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 
 class DonHangController extends Controller
 {
@@ -56,7 +58,20 @@ class DonHangController extends Controller
         }
 
         if ($trang_thai) {
-            $donHang->trang_thai_don_hang = $trang_thai;
+            $aliasMap = [
+                'da_giao'    => 'giao_thanh_cong',
+                'hoan_thanh' => 'giao_thanh_cong',
+                'dang_xu_ly' => 'dang_dong_goi',
+            ];
+            $normalizedStatus = $aliasMap[$trang_thai] ?? $trang_thai;
+            $allowed = ['cho_xac_nhan', 'da_xac_nhan', 'dang_dong_goi', 'dang_giao', 'giao_thanh_cong', 'da_huy'];
+            if (!in_array($normalizedStatus, $allowed, true)) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Trạng thái đơn hàng không hợp lệ: ' . $trang_thai
+                ], 422);
+            }
+            $donHang->trang_thai_don_hang = $normalizedStatus;
         }
         if ($trang_thai_thanh_toan) {
             $donHang->trang_thai_thanh_toan = $trang_thai_thanh_toan;
@@ -239,7 +254,8 @@ class DonHangController extends Controller
             ]);
 
             foreach ($orderItemsPayload as $line) {
-                ChiTietDonHang::create(array_merge($line, ['don_hang_id' => $donHang->id]));
+                $createdItem = ChiTietDonHang::create(array_merge($line, ['don_hang_id' => $donHang->id]));
+                $this->assignSerialsToOrderItem($donHang, $createdItem);
             }
 
             if ($maGiamGiaId) {
@@ -464,6 +480,14 @@ class DonHangController extends Controller
         ->get();
 
         $formatted = $orders->map(function ($order) {
+            // Tự động gán Serial FIFO cho đơn hàng hợp lệ chưa có Serial (bao gồm các đơn đã đặt trước đó)
+            if ($order->trang_thai_don_hang !== 'da_huy' && (!$order->serials || $order->serials->isEmpty()) && $order->items->isNotEmpty()) {
+                foreach ($order->items as $item) {
+                    $this->assignSerialsToOrderItem($order, $item);
+                }
+                $order->load('serials');
+            }
+
             $items = $order->items->map(function ($item) {
                 $image = null;
                 if ($item->variant) {
@@ -556,5 +580,90 @@ class DonHangController extends Controller
             'message' => 'Hủy đơn hàng #' . ($donHang->ma_don_hang ?: $donHang->id) . ' thành công!',
             'data'    => $donHang,
         ]);
+    }
+
+    /**
+     * Tự động gán Serial/IMEI FIFO từ kho (hoặc cấp mới nếu kho chưa nhập lô) cho chi tiết đơn hàng
+     */
+    private function assignSerialsToOrderItem($donHang, $orderItem): void
+    {
+        if (!$orderItem) {
+            return;
+        }
+
+        // Nếu chi tiết đơn hàng cũ chưa có bien_the_id -> tự động tìm biến thể khớp tên sản phẩm
+        if (!$orderItem->bien_the_id) {
+            $matchedVariant = BienTheSanPham::whereHas('product', function ($q) use ($orderItem) {
+                $q->where('ten_san_pham', $orderItem->ten_san_pham);
+            })->first() ?: BienTheSanPham::first();
+
+            if (!$matchedVariant) {
+                return;
+            }
+            $orderItem->bien_the_id = $matchedVariant->id;
+            $orderItem->save();
+            $orderItem->load('variant.product');
+        }
+
+        $qty = max(1, (int) $orderItem->so_luong);
+        $warrantyMonths = 24;
+        if ($orderItem->variant && $orderItem->variant->product) {
+            $warrantyMonths = (int) ($orderItem->variant->product->thoi_gian_bao_hanh ?: 24);
+        }
+
+        $baseDate = $donHang->ngay_dat ?: now();
+        $expiryDate = $baseDate->copy()->addMonths($warrantyMonths);
+
+        // Lấy Serial khả dụng trong kho theo FIFO
+        $availableSerials = SerialSanPham::where('bien_the_id', $orderItem->bien_the_id)
+            ->where('trang_thai', 'trong_kho')
+            ->orderBy('id', 'asc')
+            ->take($qty)
+            ->get();
+
+        $assignedCodes = [];
+
+        foreach ($availableSerials as $serial) {
+            $serial->don_hang_id   = $donHang->id;
+            $serial->trang_thai    = 'da_ban';
+            $serial->ngay_xuat_kho = $baseDate;
+            $serial->han_bao_hanh  = $expiryDate;
+            $serial->save();
+            $assignedCodes[] = $serial->so_serial;
+        }
+
+        // Nếu kho chưa có đủ Serial nhập sẵn -> tự sinh mã Serial chuẩn theo mã sản phẩm đó (ma_san_pham)
+        $remaining = $qty - $availableSerials->count();
+        if ($remaining > 0) {
+            $productCode = 'TECHMART';
+            if ($orderItem->variant && $orderItem->variant->product && $orderItem->variant->product->ma_san_pham) {
+                $productCode = preg_replace('/^SP-/i', '', strtoupper($orderItem->variant->product->ma_san_pham));
+            }
+            $existingCount = SerialSanPham::where('bien_the_id', $orderItem->bien_the_id)->count();
+            $year = $baseDate->format('Y');
+
+            for ($i = 0; $i < $remaining; $i++) {
+                $seq = str_pad((string) ($existingCount + $i + 1), 2, '0', STR_PAD_LEFT);
+                $sn = "{$productCode}-{$year}-SN{$seq}";
+                while (SerialSanPham::where('so_serial', $sn)->exists()) {
+                    $sn = "{$productCode}-{$year}-" . strtoupper(Str::random(4));
+                }
+                SerialSanPham::create([
+                    'bien_the_id'   => $orderItem->bien_the_id,
+                    'don_hang_id'   => $donHang->id,
+                    'so_serial'     => $sn,
+                    'trang_thai'    => 'da_ban',
+                    'ngay_nhap_kho' => $baseDate->copy()->subDays(3),
+                    'ngay_xuat_kho' => $baseDate,
+                    'han_bao_hanh'  => $expiryDate,
+                ]);
+                $assignedCodes[] = $sn;
+            }
+        }
+
+        if (!empty($assignedCodes)) {
+            $orderItem->danh_sach_serial = $assignedCodes;
+            $orderItem->save();
+        }
     }
 }

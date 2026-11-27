@@ -13,7 +13,7 @@ class DonHangSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('don_hang')->truncate();
+        DB::table('don_hang')->delete();
 
         $donHangs = [
             // Đơn hàng 1: Mua Màn hình LG (SP 1, biến thể 7) - Đã giao thành công, thanh toán VNPAY
