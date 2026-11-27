@@ -54,20 +54,47 @@ class User extends Authenticatable
         return $this->vai_tro === 'customer';
     }
 
+    public function chucNangs()
+    {
+        return $this->belongsToMany(ChucNang::class, 'phan_quyen', 'nguoi_dung_id', 'chuc_nang_id')
+            ->withTimestamps();
+    }
+
+    public function getPermissionCodes(): array
+    {
+        if ($this->isAdmin()) {
+            return ChucNang::pluck('ma_chuc_nang')->toArray();
+        }
+        return $this->chucNangs()->pluck('ma_chuc_nang')->toArray();
+    }
+
+    public function hasPermission(string $maChucNang): bool
+    {
+        if ($this->isAdmin()) {
+            return true;
+        }
+        return $this->chucNangs()->where('ma_chuc_nang', $maChucNang)->exists();
+    }
+
     // Relationships
     public function addresses()
     {
         return $this->hasMany(UserAddress::class, 'nguoi_dung_id');
     }
 
-    public function orders()
+    public function favorites()
     {
-        return $this->hasMany(Order::class, 'nguoi_dung_id');
+        return $this->hasMany(SanPhamYeuThich::class, 'nguoi_dung_id');
     }
 
     public function reviews()
     {
         return $this->hasMany(Review::class, 'nguoi_dung_id');
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class, 'nguoi_dung_id');
     }
 
     public function cartItems()
