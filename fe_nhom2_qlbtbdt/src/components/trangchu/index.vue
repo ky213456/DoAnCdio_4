@@ -18,9 +18,9 @@
           </span>
         </div>
         <div class="topbar-right">
-          <a href="#" class="topbar-link">
+          <router-link to="/warranty" class="topbar-link">
             <i class="bi bi-shield-check me-1 text-info"></i> Tra cứu bảo hành điện tử (Serial/IMEI)
-          </a>
+          </router-link>
           <span class="divider">|</span>
           <span class="lang-selector">
             <i class="bi bi-globe me-1"></i> Tiếng Việt
@@ -83,10 +83,28 @@
           <button class="btn-action-ai" @click="isAiChatOpen = true">
             <i class="bi bi-robot action-icon text-warning"></i>
             <div class="action-text">
-              <span class="action-title">[ AI TƯ VẤN ]</span>
+              <span class="action-title">AI TƯ VẤN</span>
               <span class="action-sub">Hỏi cấu hình máy</span>
             </div>
           </button>
+
+          <!-- Nút So sánh cấu hình (UC01) -->
+          <router-link to="/compare" class="btn-action-icon-pill" title="So sánh thông số kỹ thuật sản phẩm">
+            <div class="cart-icon-wrap">
+              <i class="bi bi-arrow-left-right action-icon text-primary"></i>
+              <span class="cart-badge bg-info text-dark" v-if="compareList.length > 0">{{ compareList.length }}</span>
+            </div>
+            <span class="action-title d-none d-xxl-inline ms-2">So sánh</span>
+          </router-link>
+
+          <!-- Nút Yêu thích (UC05) -->
+          <router-link to="/wishlist" class="btn-action-icon-pill" title="Danh sách sản phẩm yêu thích">
+            <div class="cart-icon-wrap">
+              <i class="bi bi-heart-fill action-icon text-danger"></i>
+              <span class="cart-badge bg-danger" v-if="wishlist.length > 0">{{ wishlist.length }}</span>
+            </div>
+            <span class="action-title d-none d-xxl-inline ms-2">Yêu thích</span>
+          </router-link>
 
           <!-- ❺ Nút Giỏ hàng -->
           <router-link to="/cart" class="btn-action-cart" title="Xem giỏ hàng của bạn">
@@ -94,7 +112,7 @@
               <i class="bi bi-cart3 action-icon"></i>
               <span class="cart-badge" :class="{ 'badge-bounce': isCartBouncing }">{{ cartTotalCount }}</span>
             </div>
-            <span class="action-title d-none d-md-inline ms-1">Giỏ hàng</span>
+            <span class="action-title d-none d-md-inline ms-2">Giỏ hàng</span>
           </router-link>
 
           <!-- ❻ Menu Người dùng / Đăng nhập / Đăng ký -->
@@ -111,10 +129,12 @@
                 <span class="user-dropdown-email">{{ currentUser.email }}</span>
               </div>
               <hr class="dropdown-divider" />
-              <a href="#" class="user-dropdown-item"><i class="bi bi-person me-2"></i>Hồ sơ cá nhân</a>
+              <router-link to="/profile" class="user-dropdown-item"><i class="bi bi-person me-2 text-primary"></i>Hồ sơ cá nhân</router-link>
+              <router-link to="/wishlist" class="user-dropdown-item"><i class="bi bi-heart me-2 text-danger"></i>Sản phẩm yêu thích</router-link>
+              <router-link to="/compare" class="user-dropdown-item"><i class="bi bi-arrow-left-right me-2 text-info"></i>So sánh cấu hình</router-link>
               <router-link to="/cart" class="user-dropdown-item"><i class="bi bi-cart3 me-2"></i>Giỏ hàng của tôi</router-link>
               <router-link to="/my-orders" class="user-dropdown-item"><i class="bi bi-bag-check me-2"></i>Đơn hàng của tôi</router-link>
-              <a href="#" class="user-dropdown-item"><i class="bi bi-shield-check me-2"></i>Tra cứu bảo hành</a>
+              <router-link to="/warranty" class="user-dropdown-item"><i class="bi bi-shield-check me-2"></i>Tra cứu bảo hành</router-link>
               <router-link to="/admin" v-if="currentUser.vai_tro === 'admin' || currentUser.vai_tro === 'staff'" class="user-dropdown-item text-primary"><i class="bi bi-gear me-2"></i>Vào Admin Portal</router-link>
               <hr class="dropdown-divider" />
               <a href="javascript:void(0)" @click="handleLogout" class="user-dropdown-item text-danger"><i class="bi bi-box-arrow-right me-2"></i>Đăng xuất</a>
@@ -138,18 +158,46 @@
     <!-- ========================================== -->
     <nav :class="['main-navbar', { 'sticky-nav': isSticky }]">
       <div class="main-width navbar-inner">
-        <div class="nav-catalog-btn">
+        <router-link to="/catalog" class="nav-catalog-btn text-decoration-none">
           <i class="bi bi-grid-3x3-gap-fill menu-bars"></i>
           <span class="catalog-text">TẤT CẢ DANH MỤC</span>
-        </div>
+        </router-link>
         <ul class="nav-links">
-          <li class="nav-item"><a href="#" class="nav-link active"><i class="bi bi-laptop me-1"></i> LAPTOP</a></li>
-          <li class="nav-item"><a href="#" class="nav-link"><i class="bi bi-pc-display me-1"></i> PC & MÁY TRẠM</a></li>
-          <li class="nav-item"><a href="#" class="nav-link"><i class="bi bi-phone me-1"></i> SMARTPHONE</a></li>
-          <li class="nav-item"><a href="#" class="nav-link"><i class="bi bi-cpu me-1"></i> LINH KIỆN PC</a></li>
-          <li class="nav-item"><a href="#" class="nav-link"><i class="bi bi-controller me-1"></i> PHỤ KIỆN</a></li>
-          <li class="nav-item"><a href="#" class="nav-link flash-link"><i class="bi bi-lightning-fill text-warning me-1"></i> FLASH SALE</a></li>
-          <li class="nav-item"><a href="#" class="nav-link promo-link"><i class="bi bi-gift-fill text-danger me-1"></i> KHUYẾN MÃI</a></li>
+          <li class="nav-item">
+            <router-link to="/catalog?category=laptop" class="nav-link">
+              <i class="bi bi-laptop me-1"></i> LAPTOP
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link to="/catalog?category=pc-may-tram" class="nav-link">
+              <i class="bi bi-pc-display me-1"></i> PC & MÁY TRẠM
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link to="/catalog?category=smartphone" class="nav-link">
+              <i class="bi bi-phone me-1"></i> SMARTPHONE
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link to="/catalog?category=linh-kien-pc" class="nav-link">
+              <i class="bi bi-cpu me-1"></i> LINH KIỆN PC
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link to="/catalog?category=gaming-gear" class="nav-link">
+              <i class="bi bi-controller me-1"></i> PHỤ KIỆN
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link to="/catalog?filter=flash-sale" class="nav-link flash-link">
+              <i class="bi bi-lightning-fill text-warning me-1"></i> FLASH SALE
+            </router-link>
+          </li>
+          <li class="nav-item">
+            <router-link to="/catalog?filter=promo" class="nav-link promo-link">
+              <i class="bi bi-gift-fill text-danger me-1"></i> KHUYẾN MÃI
+            </router-link>
+          </li>
         </ul>
       </div>
     </nav>
@@ -274,7 +322,7 @@
           <div v-for="(item, index) in list_flash_sale.slice(0, 8)" :key="item.id || index" class="product-card flash-card">
             <div class="discount-badge"><i class="bi bi-fire me-1"></i>HOT SALE</div>
             <div class="product-img-box">
-              <img v-if="item.anh_chinh" :src="item.anh_chinh" :alt="item.ten_san_pham" />
+              <img v-if="item.anh_chinh" :src="item.anh_chinh" :alt="item.ten_san_pham" @error="onImgError($event)" />
               <div v-else class="img-mock-box">
                 <i class="bi bi-laptop fs-1 text-primary"></i>
                 <span class="img-placeholder">TechMart 360</span>
@@ -388,35 +436,35 @@
     <section class="categories-section main-width scroll-reveal">
       <h2 class="section-title"><i class="bi bi-grid-fill me-2 text-primary"></i>DANH MỤC THIẾT BỊ NỔI BẬT</h2>
       <div class="categories-grid">
-        <div class="category-item">
+        <div class="category-item cursor-pointer" @click="$router.push('/catalog?category=laptop&q=gaming')">
           <div class="cat-icon-box cat-blue"><i class="bi bi-laptop"></i></div>
           <span class="cat-name">Laptop Gaming</span>
         </div>
-        <div class="category-item">
+        <div class="category-item cursor-pointer" @click="$router.push('/catalog?category=laptop')">
           <div class="cat-icon-box cat-slate"><i class="bi bi-briefcase-fill"></i></div>
           <span class="cat-name">Laptop Văn Phòng</span>
         </div>
-        <div class="category-item">
+        <div class="category-item cursor-pointer" @click="$router.push('/catalog?category=laptop&q=macbook')">
           <div class="cat-icon-box cat-dark"><i class="bi bi-apple"></i></div>
           <span class="cat-name">Macbook - Apple</span>
         </div>
-        <div class="category-item">
+        <div class="category-item cursor-pointer" @click="$router.push('/catalog?category=pc-may-tram')">
           <div class="cat-icon-box cat-cyan"><i class="bi bi-pc-display"></i></div>
           <span class="cat-name">PC Ráp Sẵn</span>
         </div>
-        <div class="category-item">
+        <div class="category-item cursor-pointer" @click="$router.push('/catalog?category=linh-kien-pc&q=vga')">
           <div class="cat-icon-box cat-rose"><i class="bi bi-gpu-card"></i></div>
           <span class="cat-name">Card VGA</span>
         </div>
-        <div class="category-item">
+        <div class="category-item cursor-pointer" @click="$router.push('/catalog?category=linh-kien-pc&q=cpu')">
           <div class="cat-icon-box cat-amber"><i class="bi bi-cpu-fill"></i></div>
           <span class="cat-name">CPU Vi Xử Lý</span>
         </div>
-        <div class="category-item">
+        <div class="category-item cursor-pointer" @click="$router.push('/catalog?category=pc-may-tram&q=màn hình')">
           <div class="cat-icon-box cat-emerald"><i class="bi bi-display"></i></div>
           <span class="cat-name">Màn Hình 2K/4K</span>
         </div>
-        <div class="category-item">
+        <div class="category-item cursor-pointer" @click="$router.push('/catalog?category=gaming-gear')">
           <div class="cat-icon-box cat-indigo"><i class="bi bi-headset"></i></div>
           <span class="cat-name">Phụ Kiện Gaming</span>
         </div>
@@ -457,8 +505,8 @@
             </div>
 
             <!-- Khung hình ảnh sản phẩm & icon đồ họa -->
-            <div class="card-visual-box">
-              <img v-if="item.anh_chinh" :src="item.anh_chinh" :alt="item.ten_san_pham" class="showcase-img" />
+            <div class="card-visual-box cursor-pointer" @click="goToProductDetail(item.id)">
+              <img v-if="item.anh_chinh" :src="item.anh_chinh" :alt="item.ten_san_pham" class="showcase-img" @error="onImgError($event)" />
               <div v-else class="img-mock-box">
                 <i class="bi bi-laptop fs-1 text-primary"></i>
                 <span class="img-placeholder">TechMart 360</span>
@@ -472,7 +520,7 @@
             </div>
 
             <!-- Khung thông số kỹ thuật dạng pills box (chuẩn như ảnh) -->
-            <div class="card-specs-box">
+            <div class="card-specs-box cursor-pointer" @click="goToProductDetail(item.id)">
               <div class="spec-line-1">
                 {{ extractCpuGpu(item) }}
               </div>
@@ -482,7 +530,7 @@
             </div>
 
             <!-- Tên sản phẩm -->
-            <h4 class="showcase-prod-title" :title="item.ten_san_pham">
+            <h4 class="showcase-prod-title cursor-pointer" :title="item.ten_san_pham" @click="goToProductDetail(item.id)">
               {{ item.ten_san_pham }}
             </h4>
 
@@ -554,31 +602,166 @@
         </div>
       </div>
 
+      <!-- BỘ LỌC ĐA TIÊU CHÍ (UC02: MULTI-CRITERIA FILTER BAR) -->
+      <div class="filter-controls-card card border-0 shadow-sm p-3 mb-4 rounded-3 bg-white">
+        <!-- Hàng 1: Tìm kiếm & Sắp xếp -->
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3 pb-3 border-bottom">
+          <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 480px;">
+            <div class="input-group">
+              <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+              <input
+                type="text"
+                v-model="searchQuery"
+                class="form-control bg-light border-start-0 ps-0 shadow-none"
+                placeholder="Tìm nhanh cấu hình máy (vd: RTX 4060, i7, Dell, MacBook...)"
+              />
+              <button class="btn btn-outline-secondary" v-if="searchQuery" @click="searchQuery = ''">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="d-flex align-items-center gap-2">
+            <span class="small fw-semibold text-muted text-nowrap"><i class="bi bi-sort-down me-1"></i>Sắp xếp:</span>
+            <select class="form-select form-select-sm" v-model="sortBy" style="width: 170px;">
+              <option value="default">Mặc định nổi bật</option>
+              <option value="price_asc">Giá tăng dần</option>
+              <option value="price_desc">Giá giảm dần</option>
+              <option value="views">Xem nhiều nhất</option>
+              <option value="name_asc">Tên A-Z</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Hàng 2: Bộ lọc Thương hiệu -->
+        <div class="filter-row d-flex align-items-center flex-wrap gap-2 mb-2">
+          <span class="filter-label small fw-bold text-muted me-2" style="min-width: 90px;">
+            <i class="bi bi-tag-fill me-1 text-primary"></i>Hãng:
+          </span>
+          <button
+            class="btn btn-sm btn-filter-chip"
+            :class="{ active: !filterBrand }"
+            @click="filterBrand = ''"
+          >Tất cả</button>
+          <button
+            v-for="b in ['DELL', 'ASUS', 'LENOVO', 'APPLE', 'HP', 'MSI', 'ACER']"
+            :key="b"
+            class="btn btn-sm btn-filter-chip"
+            :class="{ active: filterBrand === b }"
+            @click="filterBrand = (filterBrand === b ? '' : b)"
+          >{{ b }}</button>
+        </div>
+
+        <!-- Hàng 3: Bộ lọc Mức giá -->
+        <div class="filter-row d-flex align-items-center flex-wrap gap-2 mb-2">
+          <span class="filter-label small fw-bold text-muted me-2" style="min-width: 90px;">
+            <i class="bi bi-cash-stack me-1 text-success"></i>Mức giá:
+          </span>
+          <button
+            class="btn btn-sm btn-filter-chip"
+            :class="{ active: !filterPriceRange }"
+            @click="filterPriceRange = ''"
+          >Tất cả giá</button>
+          <button
+            class="btn btn-sm btn-filter-chip"
+            :class="{ active: filterPriceRange === 'under15' }"
+            @click="filterPriceRange = (filterPriceRange === 'under15' ? '' : 'under15')"
+          >Dưới 15 Triệu</button>
+          <button
+            class="btn btn-sm btn-filter-chip"
+            :class="{ active: filterPriceRange === '15to25' }"
+            @click="filterPriceRange = (filterPriceRange === '15to25' ? '' : '15to25')"
+          >15 - 25 Triệu</button>
+          <button
+            class="btn btn-sm btn-filter-chip"
+            :class="{ active: filterPriceRange === '25to40' }"
+            @click="filterPriceRange = (filterPriceRange === '25to40' ? '' : '25to40')"
+          >25 - 40 Triệu</button>
+          <button
+            class="btn btn-sm btn-filter-chip"
+            :class="{ active: filterPriceRange === 'over40' }"
+            @click="filterPriceRange = (filterPriceRange === 'over40' ? '' : 'over40')"
+          >Trên 40 Triệu</button>
+        </div>
+
+        <!-- Hàng 4: Bộ lọc Vi xử lý (CPU) -->
+        <div class="filter-row d-flex align-items-center flex-wrap gap-2">
+          <span class="filter-label small fw-bold text-muted me-2" style="min-width: 90px;">
+            <i class="bi bi-cpu-fill me-1 text-warning"></i>Vi xử lý:
+          </span>
+          <button
+            class="btn btn-sm btn-filter-chip"
+            :class="{ active: !filterCpu }"
+            @click="filterCpu = ''"
+          >Tất cả CPU</button>
+          <button
+            v-for="c in ['Intel Core i5', 'Intel Core i7', 'Intel Core i9', 'AMD Ryzen', 'Apple M-Series']"
+            :key="c"
+            class="btn btn-sm btn-filter-chip"
+            :class="{ active: filterCpu === c }"
+            @click="filterCpu = (filterCpu === c ? '' : c)"
+          >{{ c }}</button>
+          <button
+            v-if="filterBrand || filterPriceRange || filterCpu || searchQuery"
+            class="btn btn-sm btn-outline-danger ms-auto"
+            @click="clearAllFilters"
+          >
+            <i class="bi bi-arrow-counterclockwise me-1"></i>Xóa bộ lọc
+          </button>
+        </div>
+      </div>
+
       <!-- Lưới 4 cột chuẩn e-commerce (Mặc định 8 sản phẩm vừa khít 2 hàng, bấm xem tất cả thì bung hết) -->
       <div class="product-grid-4-cols all-products-grid">
         <div
           v-for="(item, index) in displayedAllProducts"
           :key="item.id || index"
-          class="product-card"
+          class="product-card position-relative"
         >
+          <!-- Nút hành động nhanh trên card: Yêu thích & So sánh -->
+          <div class="card-top-actions position-absolute top-0 end-0 m-2 d-flex gap-1" style="z-index: 5;">
+            <button
+              class="btn-icon-circle"
+              :class="{ 'btn-liked': isWishlisted(item.id) }"
+              @click.stop="toggleWishlist(item.id)"
+              title="Lưu vào danh sách yêu thích"
+            >
+              <i :class="isWishlisted(item.id) ? 'bi bi-heart-fill text-danger' : 'bi bi-heart'"></i>
+            </button>
+            <button
+              class="btn-icon-circle"
+              :class="{ 'btn-compared': isInCompare(item.id) }"
+              @click.stop="toggleCompare(item)"
+              title="So sánh thông số kỹ thuật"
+            >
+              <i class="bi bi-arrow-left-right" :class="{ 'text-info': isInCompare(item.id) }"></i>
+            </button>
+          </div>
+
           <div class="tag-badge">
             <i class="bi bi-patch-check-fill me-1 text-primary"></i>{{ item.ten_thuong_hieu || item.ten_danh_muc || 'Chính hãng' }}
           </div>
-          <div class="product-img-box">
-            <img v-if="item.anh_chinh" :src="item.anh_chinh" :alt="item.ten_san_pham" />
+          <div class="product-img-box cursor-pointer" @click="openDetailModal(item)">
+            <img v-if="item.anh_chinh" :src="item.anh_chinh" :alt="item.ten_san_pham" @error="onImgError($event)" />
             <div v-else class="img-mock-box">
               <i class="bi bi-cpu fs-1 text-primary"></i>
               <span class="img-placeholder">TechMart 360</span>
             </div>
           </div>
-          <h4 class="product-title" :title="item.ten_san_pham">{{ item.ten_san_pham }}</h4>
-          <p class="product-specs">{{ item.mo_ta_ngan || 'Hàng chính hãng fullbox, bảo hành chính hãng 24T' }}</p>
+          <h4 class="product-title cursor-pointer" :title="item.ten_san_pham" @click="openDetailModal(item)">
+            {{ item.ten_san_pham }}
+          </h4>
+          <p class="product-specs cursor-pointer" @click="openDetailModal(item)">
+            {{ item.mo_ta_ngan || 'Hàng chính hãng fullbox, bảo hành chính hãng 24T' }}
+          </p>
           <div class="product-pricing">
             <span class="price-current">{{ formatCurrency(item.gia_khuyen_mai || item.gia_goc) }}</span>
             <span v-if="item.gia_khuyen_mai" class="price-original ms-2">{{ formatCurrency(item.gia_goc) }}</span>
           </div>
           <div class="card-btn-group">
-            <button class="btn-card-detail" @click="muaNgay(item)"><i class="bi bi-lightning-charge-fill me-1 text-warning"></i>Mua ngay</button>
+            <button class="btn-card-detail" @click="openDetailModal(item)">
+              <i class="bi bi-eye-fill me-1"></i>Chi tiết & ĐG
+            </button>
             <button class="btn-card-add" @click="themVaoGio(item)" :disabled="item.isAdding">
               <i class="bi bi-arrow-repeat spin me-1" v-if="item.isAdding"></i>
               <i class="bi bi-cart-plus me-1" v-else></i>
@@ -1106,6 +1289,271 @@
         </div>
       </div>
     </transition>
+
+    <!-- ========================================== -->
+    <!-- THANH SO SÁNH NỔI DOCK Ở ĐÁY MÀN HÌNH (UC01) -->
+    <!-- ========================================== -->
+    <transition name="dock-slide">
+      <div v-if="compareList.length > 0" class="floating-compare-dock shadow-lg border rounded-4 bg-white p-3">
+        <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap">
+          <div class="d-flex align-items-center gap-2">
+            <div class="badge bg-primary fs-6 px-3 py-2 rounded-pill">
+              <i class="bi bi-arrow-left-right me-1"></i> So sánh ({{ compareList.length }}/4)
+            </div>
+            <div class="compare-thumbs-strip d-flex align-items-center gap-2">
+              <div
+                v-for="cp in compareList"
+                :key="cp.id"
+                class="compare-thumb-slot position-relative border rounded p-1"
+                :title="cp.ten_san_pham"
+              >
+                <img :src="cp.anh_chinh || 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/t/e/text_ng_n_1__1_96_1_1_1_1.png'" class="thumb-img" />
+                <button class="btn-remove-slot" @click="removeCompare(cp.id)"><i class="bi bi-x"></i></button>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <button class="btn btn-outline-secondary btn-sm" @click="clearCompare">Xóa hết</button>
+            <button class="btn btn-primary btn-sm px-3 fw-bold" @click="goToCompare">
+              <i class="bi bi-eye-fill me-1"></i> So sánh ngay
+            </button>
+          </div>
+        </div>
+      </div>
+    </transition>
+
+    <!-- ========================================== -->
+    <!-- MODAL CHI TIẾT SẢN PHẨM & ĐÁNH GIÁ (UC03) -->
+    <!-- ========================================== -->
+    <transition name="modal-fade">
+      <div v-if="showDetailModal && selectedDetailProduct" class="modal-backdrop-custom d-flex align-items-center justify-content-center">
+        <div class="modal-overlay-bg" @click="closeDetailModal"></div>
+        <div class="product-detail-modal-dialog bg-white rounded-4 shadow-lg overflow-hidden position-relative" @click.stop style="max-width: 860px; width: 95%; max-height: 90vh; display: flex; flex-direction: column; z-index: 9999;">
+          <!-- Header -->
+          <div class="p-3 border-bottom d-flex align-items-center justify-content-between bg-light">
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge bg-primary">{{ selectedDetailProduct.ten_thuong_hieu || selectedDetailProduct.ten_danh_muc || 'Chính hãng' }}</span>
+              <h5 class="mb-0 fw-bold text-dark text-truncate" style="max-width: 550px;">{{ selectedDetailProduct.ten_san_pham }}</h5>
+            </div>
+            <button class="btn-close" @click="closeDetailModal"></button>
+          </div>
+
+          <!-- Tabs: Thông số kỹ thuật vs Đánh giá bình luận -->
+          <div class="d-flex border-bottom bg-white px-3 pt-2 gap-3">
+            <button
+              class="btn btn-link text-decoration-none fw-bold pb-2 border-bottom border-2 rounded-0"
+              :class="detailModalTab === 'specs' ? 'border-primary text-primary' : 'border-transparent text-muted'"
+              @click="detailModalTab = 'specs'"
+            >
+              <i class="bi bi-cpu me-1"></i> Thông số kỹ thuật
+            </button>
+            <button
+              class="btn btn-link text-decoration-none fw-bold pb-2 border-bottom border-2 rounded-0 position-relative"
+              :class="detailModalTab === 'reviews' ? 'border-primary text-primary' : 'border-transparent text-muted'"
+              @click="detailModalTab = 'reviews'"
+            >
+              <i class="bi bi-star-fill text-warning me-1"></i> Đánh giá & Bình luận
+              <span class="badge bg-danger rounded-pill ms-1">{{ reviewsList.length }}</span>
+            </button>
+          </div>
+
+          <!-- Body cuộn được -->
+          <div class="p-4 overflow-y-auto" style="flex: 1;">
+            <!-- TAB 1: THÔNG SỐ KỸ THUẬT -->
+            <div v-if="detailModalTab === 'specs'">
+              <div class="row g-4">
+                <div class="col-md-5 text-center">
+                  <img
+                    :src="selectedDetailProduct.anh_chinh || 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/t/e/text_ng_n_1__1_96_1_1_1_1.png'"
+                    class="img-fluid rounded border p-2 mb-3"
+                    style="max-height: 240px; object-fit: contain;"
+                  />
+                  <div class="pricing-box p-3 bg-light rounded-3 mb-3">
+                    <div class="text-danger fw-bold fs-4">{{ formatCurrency(selectedDetailProduct.gia_khuyen_mai || selectedDetailProduct.gia_goc) }}</div>
+                    <div v-if="selectedDetailProduct.gia_khuyen_mai" class="text-muted text-decoration-line-through small">{{ formatCurrency(selectedDetailProduct.gia_goc) }}</div>
+                  </div>
+                  <div class="d-grid gap-2">
+                    <button class="btn btn-primary" @click="themVaoGio(selectedDetailProduct)">
+                      <i class="bi bi-cart-plus me-1"></i> Thêm vào giỏ hàng
+                    </button>
+                    <button class="btn btn-outline-info text-dark" @click="toggleCompare(selectedDetailProduct)">
+                      <i class="bi bi-arrow-left-right me-1"></i> {{ isInCompare(selectedDetailProduct.id) ? 'Đã thêm so sánh' : 'Thêm vào so sánh' }}
+                    </button>
+                  </div>
+                </div>
+
+                <div class="col-md-7">
+                  <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                    <i class="bi bi-cpu text-primary me-1"></i> Cấu hình chi tiết
+                    <span class="badge bg-secondary-subtle text-secondary small ms-2 text-uppercase">
+                      {{ getTypeLabel(detectProductType(selectedDetailProduct)) }}
+                    </span>
+                  </h6>
+                  <table class="table table-sm table-striped small">
+                    <!-- LAPTOP -->
+                    <tbody v-if="detectProductType(selectedDetailProduct) === 'laptop'">
+                      <tr><td class="fw-semibold text-muted" style="width: 140px;">Vi xử lý (CPU)</td><td>{{ extractCpuGpu(selectedDetailProduct) }}</td></tr>
+                      <tr><td class="fw-semibold text-muted">Bộ nhớ RAM & SSD</td><td>{{ extractRamScreen(selectedDetailProduct) }}</td></tr>
+                      <tr><td class="fw-semibold text-muted">Màn hình</td><td>15.6" / 16.0" QHD+ 165Hz IPS Chống chói</td></tr>
+                      <tr><td class="fw-semibold text-muted">Bảo hành</td><td>{{ selectedDetailProduct.thoi_gian_bao_hanh || 24 }} tháng chính hãng</td></tr>
+                      <tr><td class="fw-semibold text-muted">Giao hàng</td><td>Giao siêu tốc 2 Giờ nội thành & COD Toàn quốc</td></tr>
+                    </tbody>
+                    <!-- MÀN HÌNH -->
+                    <tbody v-else-if="detectProductType(selectedDetailProduct) === 'monitor'">
+                      <tr><td class="fw-semibold text-muted" style="width: 140px;">Kích thước hiển thị</td><td>27 inch QHD (2560 x 1440) viền siêu mỏng</td></tr>
+                      <tr><td class="fw-semibold text-muted">Độ phân giải & Tần số</td><td>2K QHD / 165Hz - 240Hz Fast IPS / OLED</td></tr>
+                      <tr><td class="fw-semibold text-muted">Cổng giao tiếp</td><td>DisplayPort 1.4, HDMI 2.0/2.1, USB Type-C</td></tr>
+                      <tr><td class="fw-semibold text-muted">Bảo hành</td><td>{{ selectedDetailProduct.thoi_gian_bao_hanh || 24 }} tháng chính hãng</td></tr>
+                      <tr><td class="fw-semibold text-muted">Giao hàng</td><td>Đóng thùng xốp chống sốc, bảo hành điểm chết 1 đổi 1</td></tr>
+                    </tbody>
+                    <!-- RAM -->
+                    <tbody v-else-if="detectProductType(selectedDetailProduct) === 'ram'">
+                      <tr><td class="fw-semibold text-muted" style="width: 140px;">Dung lượng RAM</td><td>{{ selectedDetailProduct.ten_san_pham.includes('64GB') ? '64GB (2x32GB Kit)' : (selectedDetailProduct.ten_san_pham.includes('32GB') ? '32GB (2x16GB Kit)' : '16GB') }}</td></tr>
+                      <tr><td class="fw-semibold text-muted">Chuẩn RAM & Bus</td><td>DDR5 Bus 5600MHz - 6400MHz High-Speed</td></tr>
+                      <tr><td class="fw-semibold text-muted">Tản nhiệt & LED</td><td>Tản nhiệt nhôm phay xước, LED RGB đa vùng đồng bộ</td></tr>
+                      <tr><td class="fw-semibold text-muted">Bảo hành</td><td>{{ selectedDetailProduct.thoi_gian_bao_hanh || 36 }} tháng chính hãng 1 đổi 1</td></tr>
+                      <tr><td class="fw-semibold text-muted">Tương thích</td><td>Hỗ trợ Intel XMP 3.0 & AMD EXPO ép xung tự động</td></tr>
+                    </tbody>
+                    <!-- SSD -->
+                    <tbody v-else-if="detectProductType(selectedDetailProduct) === 'ssd'">
+                      <tr><td class="fw-semibold text-muted" style="width: 140px;">Dung lượng lưu trữ</td><td>{{ selectedDetailProduct.ten_san_pham.includes('2TB') ? '2TB (2000GB)' : (selectedDetailProduct.ten_san_pham.includes('500GB') ? '500GB' : '1TB (1000GB)') }}</td></tr>
+                      <tr><td class="fw-semibold text-muted">Chuẩn giao tiếp</td><td>PCIe Gen 4.0 x4 NVMe M.2 2280</td></tr>
+                      <tr><td class="fw-semibold text-muted">Tốc độ đọc / ghi</td><td>Tốc độ đọc lên tới 7450 MB/s, Ghi 6900 MB/s</td></tr>
+                      <tr><td class="fw-semibold text-muted">Độ bền TBW</td><td>Lên đến 1200 TBW, Chip nhớ TLC 3D NAND</td></tr>
+                      <tr><td class="fw-semibold text-muted">Bảo hành</td><td>{{ selectedDetailProduct.thoi_gian_bao_hanh || 60 }} tháng chính hãng</td></tr>
+                    </tbody>
+                    <!-- GAMING GEAR & KHÁC -->
+                    <tbody v-else>
+                      <tr><td class="fw-semibold text-muted" style="width: 140px;">Phân loại</td><td>Thiết bị Gaming Gear & Phụ kiện cao cấp</td></tr>
+                      <tr><td class="fw-semibold text-muted">Kết nối & Pin</td><td>Không dây 2.4GHz + Bluetooth / Cáp Type-C, Pin sạc bền bỉ</td></tr>
+                      <tr><td class="fw-semibold text-muted">Bảo hành</td><td>{{ selectedDetailProduct.thoi_gian_bao_hanh || 24 }} tháng chính hãng</td></tr>
+                      <tr><td class="fw-semibold text-muted">Tình trạng</td><td>Fullbox Mới 100%, sẵn hàng tại Showroom</td></tr>
+                    </tbody>
+                  </table>
+                  <div class="mt-3">
+                    <h6 class="fw-bold text-dark mb-1">Mô tả sản phẩm</h6>
+                    <p class="text-muted small">{{ selectedDetailProduct.mo_ta_ngan || 'Thiết bị công nghệ chính hãng, bảo hành toàn diện tại TechMart AI.' }}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- TAB 2: ĐÁNH GIÁ & BÌNH LUẬN (UC03) -->
+            <div v-else-if="detailModalTab === 'reviews'">
+              <!-- TỔNG QUAN ĐIỂM ĐÁNH GIÁ -->
+              <div class="card p-3 bg-light border-0 rounded-3 mb-4">
+                <div class="row align-items-center">
+                  <div class="col-sm-4 text-center border-end">
+                    <div class="display-5 fw-bold text-warning">{{ reviewsStats.average || 5 }}/5</div>
+                    <div class="text-warning mb-1">
+                      <i class="bi bi-star-fill" v-for="s in 5" :key="s"></i>
+                    </div>
+                    <div class="text-muted small">{{ reviewsStats.total || reviewsList.length }} nhận xét từ khách hàng</div>
+                  </div>
+                  <div class="col-sm-8 ps-sm-4">
+                    <div v-for="star in [5, 4, 3, 2, 1]" :key="star" class="d-flex align-items-center gap-2 small mb-1">
+                      <span style="min-width: 45px;">{{ star }} sao</span>
+                      <div class="progress flex-grow-1" style="height: 7px;">
+                        <div
+                          class="progress-bar bg-warning"
+                          :style="{ width: ((reviewsStats.stars_breakdown && reviewsStats.stars_breakdown[star] ? (reviewsStats.stars_breakdown[star] / Math.max(reviewsStats.total, 1)) * 100 : (star === 5 ? 85 : (star === 4 ? 15 : 0)))) + '%' }"
+                        ></div>
+                      </div>
+                      <span class="text-muted" style="min-width: 25px;">
+                        {{ (reviewsStats.stars_breakdown && reviewsStats.stars_breakdown[star]) || (star === 5 ? reviewsList.length : 0) }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- FORM GỬI ĐÁNH GIÁ (CHỈ HIỆN KHI ĐÃ ĐĂNG NHẬP VÀ ĐÃ ĐẶT MUA SẢN PHẨM) -->
+              <div v-if="!currentUser" class="alert alert-warning border-0 rounded-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-2">
+                <div class="small fw-semibold">
+                  <i class="bi bi-lock-fill me-2"></i>Vui lòng đăng nhập và đặt mua sản phẩm để gửi đánh giá công khai.
+                </div>
+                <button class="btn btn-sm btn-warning fw-bold" @click="openAuthModal('login')">Đăng nhập ngay</button>
+              </div>
+              <div v-else-if="!canReview" class="alert alert-info border-0 rounded-3 mb-4 small fw-semibold">
+                <i class="bi bi-bag-check-fill me-2 text-primary"></i>Chỉ khách hàng đã đặt mua sản phẩm này tại TechMart AI mới có thể gửi đánh giá & bình luận công khai.
+              </div>
+              <div v-else class="card p-3 border mb-4 rounded-3 shadow-sm">
+                <h6 class="fw-bold mb-2 text-dark">
+                  <i class="bi bi-pencil-square text-primary me-1"></i> Viết đánh giá của bạn
+                </h6>
+              <div v-if="currentUser && canReview">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <span class="small fw-semibold text-muted">Chọn số sao:</span>
+                  <div class="cursor-pointer text-warning fs-5">
+                    <i
+                      v-for="st in 5"
+                      :key="st"
+                      :class="st <= newReview.so_sao ? 'bi bi-star-fill' : 'bi bi-star'"
+                      @click="newReview.so_sao = st"
+                      class="me-1"
+                    ></i>
+                  </div>
+                  <span class="badge bg-warning text-dark small fw-bold">{{ newReview.so_sao }} Sao</span>
+                </div>
+                <div class="mb-3">
+                  <textarea
+                    rows="3"
+                    v-model="newReview.noi_dung"
+                    placeholder="Chia sẻ cảm nhận về hiệu năng, màn hình, thời lượng pin, độ ồn quạt của máy (tối thiểu 5 ký tự)..."
+                    class="form-control"
+                  ></textarea>
+                </div>
+                <div class="d-flex justify-content-end">
+                  <button
+                    class="btn btn-primary btn-sm px-4 fw-bold"
+                    @click="submitReview"
+                    :disabled="isSubmittingReview"
+                  >
+                    <span class="spinner-border spinner-border-sm me-1" v-if="isSubmittingReview"></span>
+                    <i class="bi bi-send-fill me-1" v-else></i> Gửi đánh giá ngay
+                  </button>
+                </div>
+              </div>
+              </div>
+
+              <!-- DANH SÁCH BÌNH LUẬN ĐÃ DUYỆT -->
+              <div class="reviews-list-stream">
+                <h6 class="fw-bold mb-3 text-dark">Nhận xét từ khách hàng thực tế ({{ reviewsList.length }})</h6>
+                <div v-if="reviewsList.length === 0" class="text-center py-4 text-muted">
+                  <i class="bi bi-chat-heart fs-2 d-block mb-2 text-muted"></i>
+                  Sản phẩm chưa có đánh giá nào. Hãy là người đầu tiên chia sẻ cảm nhận!
+                </div>
+                <div
+                  v-for="(rv, rIdx) in reviewsList"
+                  :key="rv.id || rIdx"
+                  class="review-item-card p-3 border-bottom mb-3"
+                >
+                  <div class="d-flex align-items-center justify-content-between mb-2">
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="user-avatar-circle bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 36px; height: 36px; font-size: 13px;">
+                        {{ ((rv.user && rv.user.ho_ten) || 'KH').substring(0, 2).toUpperCase() }}
+                      </div>
+                      <div>
+                        <strong class="text-dark d-block" style="font-size: 14px;">{{ (rv.user && rv.user.ho_ten) || 'Khách hàng TechMart' }}</strong>
+                        <span class="badge bg-success-subtle text-success small" v-if="rv.da_mua_hang">
+                          <i class="bi bi-patch-check-fill me-1"></i>Đã mua hàng tại TechMart
+                        </span>
+                      </div>
+                    </div>
+                    <div class="text-warning small">
+                      <i class="bi bi-star-fill" v-for="s in (rv.so_sao || 5)" :key="s"></i>
+                      <i class="bi bi-star text-muted" v-for="s in (5 - (rv.so_sao || 5))" :key="'empty-' + s"></i>
+                    </div>
+                  </div>
+                  <p class="text-dark mb-1" style="font-size: 14px;">{{ rv.noi_dung }}</p>
+                  <div class="text-muted small" style="font-size: 12px;">{{ rv.created_at ? new Date(rv.created_at).toLocaleDateString('vi-VN') : 'Vừa xong' }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -1249,7 +1697,30 @@ export default {
         password: '',
         password_confirmation: ''
       },
-      pendingAuthAction: null
+      pendingAuthAction: null,
+
+      // Multi-criteria filter (UC02)
+      filterBrand: '',
+      filterPriceRange: '',
+      filterCpu: '',
+      sortBy: 'default',
+
+      // Compare State (UC01)
+      compareList: [],
+
+      // Product Detail & Review Modal (UC03)
+      selectedDetailProduct: null,
+      showDetailModal: false,
+      detailModalTab: 'specs',
+      reviewsList: [],
+      reviewsStats: { average: 5, total: 0, stars_breakdown: {} },
+      canReview: false,
+      isLoadingReviews: false,
+      isSubmittingReview: false,
+      newReview: {
+        so_sao: 5,
+        noi_dung: ''
+      }
     }
   },
   computed: {
@@ -1285,11 +1756,69 @@ export default {
       return source;
     },
     displayedAllProducts() {
-      const source = (this.list_all_san_pham && this.list_all_san_pham.length > 0)
-        ? this.list_all_san_pham
-        : (this.list_san_pham && this.list_san_pham.length > 0 ? this.list_san_pham : this.list_sp_noi_bat);
+      let source = (this.list_all_san_pham && this.list_all_san_pham.length > 0)
+        ? [...this.list_all_san_pham]
+        : (this.list_san_pham && this.list_san_pham.length > 0 ? [...this.list_san_pham] : [...this.list_sp_noi_bat]);
 
       if (!source || source.length === 0) return [];
+
+      // 1. Lọc theo từ khóa tìm kiếm (searchQuery)
+      if (this.searchQuery && this.searchQuery.trim() !== '') {
+        const q = this.searchQuery.toLowerCase().trim();
+        source = source.filter(p => {
+          const name = (p.ten_san_pham || '').toLowerCase();
+          const desc = (p.mo_ta_ngan || '').toLowerCase();
+          const brand = (p.ten_thuong_hieu || (p.thuong_hieu ? p.thuong_hieu.ten_thuong_hieu : '') || '').toLowerCase();
+          return name.includes(q) || desc.includes(q) || brand.includes(q);
+        });
+      }
+
+      // 2. Lọc theo thương hiệu (filterBrand)
+      if (this.filterBrand) {
+        const fb = this.filterBrand.toUpperCase();
+        source = source.filter(p => {
+          const brand = ((p.ten_thuong_hieu || (p.thuong_hieu ? p.thuong_hieu.ten_thuong_hieu : '')) || '').toUpperCase();
+          const name = (p.ten_san_pham || '').toUpperCase();
+          return brand.includes(fb) || name.includes(fb);
+        });
+      }
+
+      // 3. Lọc theo khoảng giá (filterPriceRange)
+      if (this.filterPriceRange) {
+        source = source.filter(p => {
+          const price = p.gia_khuyen_mai || p.gia_goc || 0;
+          if (this.filterPriceRange === 'under15') return price < 15000000;
+          if (this.filterPriceRange === '15to25') return price >= 15000000 && price <= 25000000;
+          if (this.filterPriceRange === '25to40') return price > 25000000 && price <= 40000000;
+          if (this.filterPriceRange === 'over40') return price > 40000000;
+          return true;
+        });
+      }
+
+      // 4. Lọc theo CPU (filterCpu)
+      if (this.filterCpu) {
+        const fc = this.filterCpu.toUpperCase();
+        source = source.filter(p => {
+          const text = ((p.ten_san_pham || '') + ' ' + (p.mo_ta_ngan || '')).toUpperCase();
+          if (fc.includes('I5')) return text.includes('I5') || text.includes('120U') || text.includes('13420H');
+          if (fc.includes('I7')) return text.includes('I7') || text.includes('13650HX') || text.includes('14700K');
+          if (fc.includes('I9')) return text.includes('I9') || text.includes('14900K') || text.includes('13980HX');
+          if (fc.includes('RYZEN')) return text.includes('RYZEN') || text.includes('AMD');
+          if (fc.includes('APPLE')) return text.includes('APPLE') || text.includes('M1') || text.includes('M2') || text.includes('M3') || text.includes('MACBOOK');
+          return true;
+        });
+      }
+
+      // 5. Sắp xếp (sortBy)
+      if (this.sortBy === 'price_asc') {
+        source.sort((a, b) => (a.gia_khuyen_mai || a.gia_goc) - (b.gia_khuyen_mai || b.gia_goc));
+      } else if (this.sortBy === 'price_desc') {
+        source.sort((a, b) => (b.gia_khuyen_mai || b.gia_goc) - (a.gia_khuyen_mai || a.gia_goc));
+      } else if (this.sortBy === 'views') {
+        source.sort((a, b) => (b.luot_xem || 0) - (a.luot_xem || 0));
+      } else if (this.sortBy === 'name_asc') {
+        source.sort((a, b) => (a.ten_san_pham || '').localeCompare(b.ten_san_pham || ''));
+      }
 
       if (this.isExpandedAll) {
         return source;
@@ -1304,6 +1833,8 @@ export default {
     this.loadAllSanPham();
     this.fetchCartData();
     this.loadAiChatHistory();
+    this.loadWishlistIds();
+    this.loadCompareStorage();
     this.startTimer();
     this.startHeroSlider();
     window.addEventListener('scroll', this.handleScroll, { passive: true });
@@ -1317,6 +1848,10 @@ export default {
     window.removeEventListener('scroll', this.handleScroll);
   },
   methods: {
+    onImgError(e) {
+      e.target.onerror = null;
+      e.target.src = 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/t/e/text_ng_n_1__1_96_1_1_1_1.png';
+    },
     checkCurrentUser() {
       const stored = localStorage.getItem('customer_user');
       const token = localStorage.getItem('customer_token');
@@ -1609,7 +2144,7 @@ export default {
             stock: 15,
             selected: true,
             isGift: false,
-            image: item.anh_chinh || 'https://cellphones.com.vn/media/catalog/product/t/e/text_ng_n_4__2_108.png'
+            image: item.anh_chinh || 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/t/e/text_ng_n_1__1_96_1_1_1_1.png'
           });
         }
         localStorage.setItem('techmart_cart', JSON.stringify(cart));
@@ -1820,17 +2355,200 @@ export default {
         behavior: 'smooth'
       });
     },
-    toggleWishlist(id) {
+    async toggleWishlist(id) {
       if (!id) return;
       const idx = this.wishlist.indexOf(id);
+      let isAdded = false;
       if (idx > -1) {
         this.wishlist.splice(idx, 1);
+        isAdded = false;
       } else {
         this.wishlist.push(id);
+        isAdded = true;
       }
+      localStorage.setItem('techmart_wishlist_ids', JSON.stringify(this.wishlist));
+
+      const token = localStorage.getItem('customer_token') || localStorage.getItem('techmart_token');
+      if (token) {
+        try {
+          await axios.post(apiUrl('client/yeu-thich/toggle'), { san_pham_id: id }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        } catch (e) {}
+      }
+      this.showCartToast(isAdded ? 'Đã thêm vào danh sách yêu thích!' : 'Đã xóa khỏi danh sách yêu thích!');
     },
     isWishlisted(id) {
       return this.wishlist.includes(id);
+    },
+    async loadWishlistIds() {
+      try {
+        const token = localStorage.getItem('customer_token') || localStorage.getItem('techmart_token');
+        if (token) {
+          const res = await axios.get(apiUrl('client/yeu-thich/ids'), {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (res.data && res.data.status) {
+            this.wishlist = res.data.data || [];
+            localStorage.setItem('techmart_wishlist_ids', JSON.stringify(this.wishlist));
+            return;
+          }
+        }
+        const local = localStorage.getItem('techmart_wishlist_ids');
+        if (local) this.wishlist = JSON.parse(local);
+      } catch (e) {}
+    },
+    loadCompareStorage() {
+      try {
+        const stored = localStorage.getItem('techmart_compare_ids');
+        if (stored) {
+          const ids = JSON.parse(stored);
+          if (Array.isArray(ids) && ids.length > 0) {
+            // Lấy thông tin tóm tắt từ list sản phẩm đã nạp
+            const all = this.list_all_san_pham.length > 0 ? this.list_all_san_pham : this.list_san_pham;
+            this.compareList = ids.map(id => all.find(p => p.id === id) || { id, ten_san_pham: `Sản phẩm #${id}` });
+          }
+        }
+      } catch (e) {}
+    },
+    detectProductType(item) {
+      if (!item) return 'laptop';
+      const catId = item.danh_muc_id;
+      const catName = (item.ten_danh_muc || (item.danh_muc ? item.danh_muc.ten_danh_muc : '') || '').toLowerCase();
+      const name = (item.ten_san_pham || '').toLowerCase();
+
+      if (catId === 2 || catName.includes('màn hình') || name.includes('màn hình') || name.includes('ultrasharp') || name.includes('ultragear')) {
+        return 'monitor';
+      }
+      if (name.includes('ram ') || name.includes('ddr4') || name.includes('ddr5') || name.includes('vengeance') || name.includes('trident z')) {
+        return 'ram';
+      }
+      if (name.includes('ssd ') || name.includes('nvme') || name.includes('990 pro') || name.includes('nv2') || name.includes('pcie')) {
+        return 'ssd';
+      }
+      if (catId === 4 || catName.includes('gear') || name.includes('chuột') || name.includes('bàn phím') || name.includes('logitech') || name.includes('akko')) {
+        return 'gear';
+      }
+      return 'laptop';
+    },
+    getTypeLabel(type) {
+      if (type === 'monitor') return 'Màn hình';
+      if (type === 'ram') return 'RAM';
+      if (type === 'ssd') return 'Ổ cứng SSD';
+      if (type === 'gear') return 'Chuột / Bàn phím';
+      return 'Laptop';
+    },
+    toggleCompare(item) {
+      if (!item || !item.id) return;
+      const idx = this.compareList.findIndex(p => p.id === item.id);
+      if (idx > -1) {
+        this.compareList.splice(idx, 1);
+        this.showCartToast(`Đã bỏ ${item.ten_san_pham} khỏi so sánh`);
+      } else {
+        const itemType = this.detectProductType(item);
+        if (this.compareList.length > 0) {
+          const firstType = this.detectProductType(this.compareList[0]);
+          if (itemType !== firstType) {
+            this.showCartToast(`Chỉ có thể so sánh sản phẩm cùng loại! Bạn đang so sánh [${this.getTypeLabel(firstType)}], không thể thêm [${this.getTypeLabel(itemType)}].`);
+            return;
+          }
+        }
+        if (this.compareList.length >= 4) {
+          this.showCartToast('Chỉ có thể so sánh tối đa 4 sản phẩm cùng lúc!');
+          return;
+        }
+        this.compareList.push(item);
+        this.showCartToast(`Đã thêm ${item.ten_san_pham} vào so sánh [${this.getTypeLabel(itemType)}]!`);
+      }
+      localStorage.setItem('techmart_compare_ids', JSON.stringify(this.compareList.map(p => p.id)));
+    },
+    isInCompare(id) {
+      return this.compareList.some(p => p.id === id);
+    },
+    removeCompare(id) {
+      this.compareList = this.compareList.filter(p => p.id !== id);
+      localStorage.setItem('techmart_compare_ids', JSON.stringify(this.compareList.map(p => p.id)));
+    },
+    clearCompare() {
+      this.compareList = [];
+      localStorage.removeItem('techmart_compare_ids');
+      this.showCartToast('Đã xóa sạch danh sách so sánh');
+    },
+    goToCompare() {
+      const ids = this.compareList.map(p => p.id).join(',');
+      this.$router.push({ path: '/compare', query: { ids } });
+    },
+    clearAllFilters() {
+      this.searchQuery = '';
+      this.filterBrand = '';
+      this.filterPriceRange = '';
+      this.filterCpu = '';
+      this.sortBy = 'default';
+    },
+    goToProductDetail(id) {
+      if (!id) return;
+      this.$router.push(`/product/${id}`);
+    },
+    async openDetailModal(item) {
+      if (!item || !item.id) return;
+      this.$router.push(`/product/${item.id}`);
+    },
+    closeDetailModal() {
+      this.showDetailModal = false;
+      this.selectedDetailProduct = null;
+    },
+    async loadReviews(productId) {
+      this.isLoadingReviews = true;
+      this.canReview = false;
+      try {
+        const token = localStorage.getItem('customer_token') || localStorage.getItem('techmart_token');
+        const res = await axios.get(apiUrl(`client/san-pham/${productId}/danh-gia`), {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+        if (res.data && res.data.status) {
+          this.reviewsList = res.data.data || [];
+          this.reviewsStats = res.data.stats || { average: 5, total: 0, stars_breakdown: {} };
+          this.canReview = !!res.data.can_review;
+        }
+      } catch (err) {
+        console.error('Lỗi tải đánh giá:', err);
+      } finally {
+        this.isLoadingReviews = false;
+      }
+    },
+    async submitReview() {
+      if (!this.currentUser) {
+        this.openAuthModal('login', () => this.submitReview());
+        return;
+      }
+      if (!this.newReview.noi_dung || this.newReview.noi_dung.trim().length < 5) {
+        alert('Nội dung đánh giá phải có ít nhất 5 ký tự!');
+        return;
+      }
+      this.isSubmittingReview = true;
+      try {
+        const token = localStorage.getItem('customer_token') || localStorage.getItem('techmart_token');
+        const res = await axios.post(apiUrl(`client/san-pham/${this.selectedDetailProduct.id}/danh-gia`), {
+          so_sao: this.newReview.so_sao,
+          noi_dung: this.newReview.noi_dung
+        }, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
+
+        if (res.data && res.data.status) {
+          this.showCartToast(res.data.message || 'Gửi đánh giá thành công!');
+          this.newReview.noi_dung = '';
+          this.newReview.so_sao = 5;
+          await this.loadReviews(this.selectedDetailProduct.id);
+        } else {
+          alert(res.data ? res.data.message : 'Không thể gửi đánh giá');
+        }
+      } catch (err) {
+        const msg = err.response?.data?.message || 'Có lỗi khi gửi đánh giá';
+        alert(msg);
+      } finally {
+        this.isSubmittingReview = false;
+      }
     },
     calculateDiscount(goc, km, index = 0) {
       if (goc && km && goc > km) {
@@ -1937,7 +2655,11 @@ export default {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
+  gap: 16px;
+}
+
+.header-logo {
+  flex-shrink: 0;
 }
 
 .header-logo .logo-box {
@@ -1946,6 +2668,7 @@ export default {
   gap: 10px;
   cursor: pointer;
   text-decoration: none;
+  white-space: nowrap;
 }
 
 .logo-icon {
@@ -2015,10 +2738,12 @@ export default {
 .btn-search {
   background-color: #0f172a;
   color: #ffffff;
-  padding: 0 20px;
+  padding: 0 18px;
   font-weight: 700;
   font-size: 13px;
   border: none;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: background 0.2s, transform 0.15s;
   display: flex;
   align-items: center;
@@ -2076,7 +2801,8 @@ export default {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .btn-action-ai {
@@ -2087,7 +2813,9 @@ export default {
   color: #ffffff;
   border: 1px solid #334155;
   border-radius: 8px;
-  padding: 6px 14px;
+  padding: 6px 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
   cursor: pointer;
   transition: all 0.25s ease;
   box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
@@ -2120,20 +2848,25 @@ export default {
   color: #94a3b8;
 }
 
-.btn-action-cart {
-  display: flex;
+.btn-action-cart,
+.btn-action-icon-pill {
+  display: inline-flex;
   align-items: center;
+  justify-content: center;
   background: #f1f5f9;
   color: #0f172a;
-  padding: 8px 14px;
+  padding: 8px 12px;
   border-radius: 8px;
   text-decoration: none;
   font-weight: 700;
   font-size: 13px;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.btn-action-cart:hover {
+.btn-action-cart:hover,
+.btn-action-icon-pill:hover {
   background: #e2e8f0;
   color: #2563eb;
   transform: translateY(-2px);
@@ -2175,6 +2908,8 @@ export default {
   border: 1.5px solid #cbd5e1;
   padding: 6px 12px;
   border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
   cursor: pointer;
   transition: all 0.2s ease;
 }
@@ -4971,5 +5706,121 @@ export default {
 .modal-fade-enter-from,
 .modal-fade-leave-to {
   opacity: 0;
+}
+
+/* ==========================================
+   CSS CHO BỘ LỌC ĐA TIÊU CHÍ, SO SÁNH & DOCK (UC01, UC02)
+   ========================================== */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.btn-filter-chip {
+  background: #f1f5f9;
+  color: #334155;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: 4px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.btn-filter-chip:hover {
+  background: #e2e8f0;
+  color: #0f172a;
+}
+
+.btn-filter-chip.active {
+  background: #0284c7;
+  color: #ffffff;
+  border-color: #0284c7;
+  font-weight: 600;
+  box-shadow: 0 2px 6px rgba(2, 132, 199, 0.35);
+}
+
+.btn-icon-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: rgba(255, 255, 255, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.06);
+  transition: all 0.2s ease;
+}
+
+.btn-icon-circle:hover {
+  transform: scale(1.1);
+  background: #ffffff;
+}
+
+.btn-liked {
+  border-color: #fca5a5;
+  background: #fef2f2;
+}
+
+.btn-compared {
+  border-color: #7dd3fc;
+  background: #f0f9ff;
+}
+
+/* Floating Compare Dock */
+.floating-compare-dock {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1040;
+  width: 90%;
+  max-width: 720px;
+  background: #ffffff;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.compare-thumb-slot {
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+}
+
+.compare-thumb-slot .thumb-img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.btn-remove-slot {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #ef4444;
+  color: #fff;
+  border: none;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.dock-slide-enter-active,
+.dock-slide-leave-active {
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.dock-slide-enter-from,
+.dock-slide-leave-to {
+  opacity: 0;
+  transform: translate(-50%, 40px);
 }
 </style>

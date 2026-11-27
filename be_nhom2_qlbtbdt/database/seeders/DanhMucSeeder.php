@@ -14,7 +14,7 @@ class DanhMucSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('danh_muc')->truncate();
+        DB::table('danh_muc')->delete();
 
         $danhMucs = [
             // Danh mục cha (danh_muc_cha_id = null)
