@@ -13,7 +13,7 @@ class DiaChiNguoiDungSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('dia_chi_nguoi_dung')->truncate();
+        DB::table('dia_chi_nguoi_dung')->delete();
 
         $diaChis = [
             // Địa chỉ 1: Khách hàng Nguyễn Văn A (nguoi_dung_id = 3) - Mặc định
