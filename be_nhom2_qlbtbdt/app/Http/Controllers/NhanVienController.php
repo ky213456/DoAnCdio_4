@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ChucNang;
 use App\Models\NhanVien;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -81,6 +82,7 @@ class NhanVienController extends Controller
                 'ho_ten'       => $user->ho_ten,
                 'email'        => $user->email,
                 'vai_tro'      => $user->vai_tro,
+                'quyen_han'    => $user->getPermissionCodes(),
                 'anh_dai_dien' => $user->anh_dai_dien,
             ]
         ]);
@@ -126,15 +128,33 @@ class NhanVienController extends Controller
                 'ho_ten'       => $user->ho_ten,
                 'email'        => $user->email,
                 'vai_tro'      => $user->vai_tro,
+                'quyen_han'    => $user->getPermissionCodes(),
                 'anh_dai_dien' => $user->anh_dai_dien,
             ]
         ]);
     }
 
+    public function getChucNangList()
+    {
+        return response()->json([
+            'status' => true,
+            'data'   => ChucNang::orderBy('id')->get(),
+        ]);
+    }
+
     public function getData()
     {
-        // Lấy tất cả tài khoản thuộc nhóm quản trị (admin và staff)
-        $data = NhanVien::whereIn('vai_tro', ['admin', 'staff'])->get();
+        $allCodes = ChucNang::pluck('ma_chuc_nang')->values()->toArray();
+        $data = NhanVien::with('chucNangs')
+            ->whereIn('vai_tro', ['admin', 'staff'])
+            ->get()
+            ->map(function ($nv) use ($allCodes) {
+                $arr = $nv->toArray();
+                $arr['quyen_han'] = $nv->isAdmin()
+                    ? $allCodes
+                    : $nv->chucNangs->pluck('ma_chuc_nang')->values()->toArray();
+                return $arr;
+            });
 
         return response()->json([
             'status'  => true,
@@ -145,33 +165,138 @@ class NhanVienController extends Controller
 
     public function addData(Request $request)
     {
+        $validator = Validator::make($request->all(), [
+            'ho_ten'        => 'required|string|max:100',
+            'email'         => 'required|email|unique:nguoi_dung,email',
+            'so_dien_thoai' => 'nullable|string|max:20|unique:nguoi_dung,so_dien_thoai',
+            'password'      => 'required|string|min:6',
+            'vai_tro'       => 'required|in:admin,staff',
+        ], [
+            'ho_ten.required'      => 'Vui lòng nhập họ tên nhân viên',
+            'email.required'       => 'Vui lòng nhập email',
+            'email.unique'         => 'Email này đã tồn tại trong hệ thống',
+            'so_dien_thoai.unique' => 'Số điện thoại này đã tồn tại',
+            'password.required'    => 'Vui lòng nhập mật khẩu',
+            'password.min'         => 'Mật khẩu tối thiểu 6 ký tự',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()], 422);
+        }
+
+        $defaultPerms = $request->vai_tro === 'admin'
+            ? ChucNang::pluck('ma_chuc_nang')->toArray()
+            : ['UC12', 'UC13', 'UC14', 'UC15', 'UC16'];
+
+        $nv = User::create([
+            'ho_ten'        => trim($request->ho_ten),
+            'email'         => trim($request->email),
+            'so_dien_thoai' => $request->filled('so_dien_thoai') ? trim($request->so_dien_thoai) : null,
+            'password'      => Hash::make($request->password),
+            'vai_tro'       => $request->vai_tro,
+            'dia_chi'       => $request->dia_chi,
+            'trang_thai'    => $request->boolean('trang_thai', true),
+        ]);
+
+        $codes = $request->input('quyen_han', $defaultPerms);
+        $chucNangIds = ChucNang::whereIn('ma_chuc_nang', (array) $codes)->pluck('id')->toArray();
+        $nv->chucNangs()->sync($chucNangIds);
+
         return response()->json([
             'status'  => true,
-            'message' => 'Thêm nhân viên thành công'
-        ]);
+            'message' => 'Thêm nhân viên thành công',
+            'data'    => $nv,
+        ], 201);
     }
 
     public function update(Request $request)
     {
+        $nv = User::whereIn('vai_tro', ['admin', 'staff'])->find($request->id);
+        if (!$nv) {
+            return response()->json(['status' => false, 'message' => 'Không tìm thấy nhân viên'], 404);
+        }
+
+        $validator = Validator::make($request->all(), [
+            'ho_ten'        => 'required|string|max:100',
+            'email'         => 'required|email|unique:nguoi_dung,email,' . $nv->id,
+            'so_dien_thoai' => 'nullable|string|max:20|unique:nguoi_dung,so_dien_thoai,' . $nv->id,
+            'vai_tro'       => 'required|in:admin,staff',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()], 422);
+        }
+
+        $nv->ho_ten        = trim($request->ho_ten);
+        $nv->email         = trim($request->email);
+        $nv->so_dien_thoai = $request->filled('so_dien_thoai') ? trim($request->so_dien_thoai) : null;
+        $nv->vai_tro       = $request->vai_tro;
+        $nv->dia_chi       = $request->dia_chi;
+        if ($request->filled('password')) {
+            $nv->password = Hash::make($request->password);
+        }
+        $nv->save();
+        if ($request->has('quyen_han')) {
+            $chucNangIds = ChucNang::whereIn('ma_chuc_nang', (array) $request->quyen_han)->pluck('id')->toArray();
+            $nv->chucNangs()->sync($chucNangIds);
+        }
+
         return response()->json([
             'status'  => true,
-            'message' => 'Cập nhật nhân viên thành công'
+            'message' => 'Cập nhật nhân viên thành công',
+            'data'    => $nv,
         ]);
     }
 
     public function destroy(Request $request)
     {
-        return response()->json([
-            'status'  => true,
-            'message' => 'Xóa nhân viên thành công'
-        ]);
+        $nv = User::whereIn('vai_tro', ['admin', 'staff'])->find($request->id);
+        if (!$nv) {
+            return response()->json(['status' => false, 'message' => 'Không tìm thấy nhân viên'], 404);
+        }
+        if ($nv->vai_tro === 'admin' && User::where('vai_tro', 'admin')->count() <= 1) {
+            return response()->json(['status' => false, 'message' => 'Không thể xóa Admin duy nhất của hệ thống!'], 400);
+        }
+        $nv->delete();
+        return response()->json(['status' => true, 'message' => 'Đã xóa nhân viên thành công']);
     }
 
     public function changeStatus(Request $request)
     {
+        $nv = User::whereIn('vai_tro', ['admin', 'staff'])->find($request->id);
+        if (!$nv) {
+            return response()->json(['status' => false, 'message' => 'Không tìm thấy nhân viên'], 404);
+        }
+        $nv->trang_thai = !$nv->trang_thai;
+        $nv->save();
         return response()->json([
-            'status'  => true,
-            'message' => 'Đổi trạng thái nhân viên thành công'
+            'status'     => true,
+            'message'    => 'Đổi trạng thái nhân viên thành công',
+            'trang_thai' => $nv->trang_thai,
+        ]);
+    }
+
+    public function updatePermissions(Request $request)
+    {
+        $nv = User::whereIn('vai_tro', ['admin', 'staff'])->find($request->id);
+        if (!$nv) {
+            return response()->json(['status' => false, 'message' => 'Không tìm thấy tài khoản nhân viên'], 404);
+        }
+
+        if ($request->has('chuc_nang_ids')) {
+            $ids = array_map('intval', (array) $request->input('chuc_nang_ids', []));
+        } else {
+            $codes = (array) $request->input('quyen_han', []);
+            $ids = ChucNang::whereIn('ma_chuc_nang', $codes)->pluck('id')->toArray();
+        }
+
+        $nv->chucNangs()->sync($ids);
+
+        return response()->json([
+            'status'    => true,
+            'message'   => 'Cập nhật phân quyền thành công cho ' . $nv->ho_ten,
+            'quyen_han' => $nv->getPermissionCodes(),
+            'data'      => $nv,
         ]);
     }
 }

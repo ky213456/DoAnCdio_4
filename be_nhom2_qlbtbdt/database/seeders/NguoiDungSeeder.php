@@ -6,6 +6,7 @@ use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Schema;
 
 class NguoiDungSeeder extends Seeder
 {
@@ -14,7 +15,9 @@ class NguoiDungSeeder extends Seeder
      */
     public function run(): void
     {
-        DB::table('nguoi_dung')->truncate();
+        Schema::disableForeignKeyConstraints();
+        DB::table('nguoi_dung')->delete();
+        Schema::enableForeignKeyConstraints();
 
         DB::table('nguoi_dung')->insert([
             // 1. Quản trị viên (Admin)
@@ -33,7 +36,7 @@ class NguoiDungSeeder extends Seeder
                 'updated_at' => now(),
             ],
 
-            // 2. Nhân viên (Staff)
+            // 2. Nhân viên chung (Staff - mặc định Bán hàng)
             [
                 'id' => 2,
                 'ho_ten' => 'Lê Văn C',
@@ -92,6 +95,38 @@ class NguoiDungSeeder extends Seeder
                 'vai_tro' => 'customer',
                 'anh_dai_dien' => 'https://ui-avatars.com/api/?name=Le+Hoang+Nam&background=6f42c1&color=fff',
                 'dia_chi' => '78 Phố Huế, Hoàn Kiếm, Hà Nội',
+                'trang_thai' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // 6. Nhân viên bán hàng
+            [
+                'id' => 6,
+                'ho_ten' => 'Trần Minh Tuấn (NV Bán hàng)',
+                'email' => 'banhang@gmail.com',
+                'email_verified_at' => now(),
+                'password' => Hash::make('12345678'),
+                'so_dien_thoai' => '0905222333',
+                'vai_tro' => 'staff',
+                'anh_dai_dien' => 'https://ui-avatars.com/api/?name=Ban+Hang&background=0d6efd&color=fff',
+                'dia_chi' => 'Đà Nẵng, Việt Nam',
+                'trang_thai' => true,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ],
+
+            // 7. Nhân viên kho & bảo hành
+            [
+                'id' => 7,
+                'ho_ten' => 'Phạm Quốc Bảo (NV Kho & BH)',
+                'email' => 'khobaohanh@gmail.com',
+                'email_verified_at' => now(),
+                'password' => Hash::make('12345678'),
+                'so_dien_thoai' => '0905444555',
+                'vai_tro' => 'staff',
+                'anh_dai_dien' => 'https://ui-avatars.com/api/?name=Kho+BH&background=fd7e14&color=fff',
+                'dia_chi' => 'Đà Nẵng, Việt Nam',
                 'trang_thai' => true,
                 'created_at' => now(),
                 'updated_at' => now(),

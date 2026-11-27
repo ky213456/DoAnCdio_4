@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { hasPermission, getFirstAllowedAdminRoute } from '@/utils/permissions'
 
 // ==========================================
 // 1. ĐƯỜNG TRUYỀN PHÍA NGƯỜI DÙNG (CLIENT ROUTES)
@@ -13,9 +14,8 @@ const clientRoutes = [
   {
     path: '/catalog',
     name: 'client-catalog',
-    // Sau này liên kết với view Danh mục của Võ Đình Huy
-    component: () => import('@/components/trangchu/index.vue'),
-    meta: { title: 'Danh Mục Sản Phẩm', layout: 'client' }
+    component: () => import('@/components/catalog/index.vue'),
+    meta: { title: 'Danh Mục Sản Phẩm - TechMart AI', layout: 'client' }
   },
   {
     path: '/cart',
@@ -37,11 +37,35 @@ const clientRoutes = [
     meta: { title: 'Lịch Sử Đơn Hàng Của Tôi - TechMart AI', layout: 'client' }
   },
   {
+    path: '/compare',
+    name: 'client-compare',
+    component: () => import('@/components/compare/index.vue'),
+    meta: { title: 'So Sánh Thông Số Kỹ Thuật - TechMart AI', layout: 'client' }
+  },
+  {
+    path: '/profile',
+    name: 'client-profile',
+    component: () => import('@/components/profile/index.vue'),
+    meta: { title: 'Hồ Sơ Cá Nhân & Địa Chỉ - TechMart AI', layout: 'client' }
+  },
+  {
+    path: '/wishlist',
+    name: 'client-wishlist',
+    component: () => import('@/components/wishlist/index.vue'),
+    meta: { title: 'Danh Sách Yêu Thích - TechMart AI', layout: 'client' }
+  },
+  {
+    path: '/warranty',
+    alias: '/tra-cuu-bao-hanh',
+    name: 'client-warranty',
+    component: () => import('@/components/warranty/index.vue'),
+    meta: { title: 'Tra Cứu Bảo Hành Điện Tử - TechMart AI', layout: 'client' }
+  },
+  {
     path: '/product/:id',
     name: 'client-product-detail',
-    // Sau này liên kết với view Chi tiết của Phạm Tiến Ninh
-    component: () => import('@/components/trangchu/index.vue'),
-    meta: { title: 'Chi Tiết Sản Phẩm', layout: 'client' }
+    component: () => import('@/components/product/index.vue'),
+    meta: { title: 'Chi Tiết Sản Phẩm - TechMart AI', layout: 'client' }
   },
   {
     path: '/login',
@@ -77,33 +101,73 @@ const adminRoutes = [
     path: '/admin',
     name: 'admin-dashboard',
     component: () => import('@/components/admin/index.vue'),
-    meta: { title: 'Bảng Điều Khiển Quản Trị - Admin BI', layout: 'admin', requiresAuth: true }
+    meta: { title: 'Tổng Quan Hệ Thống - ElectroAdmin', layout: 'admin', requiresAuth: true, adminTab: 'overview', perm: 'UC09' }
+  },
+  {
+    path: '/admin/products',
+    name: 'admin-products',
+    component: () => import('@/components/admin/index.vue'),
+    meta: { title: 'Quản Lý Sản Phẩm - ElectroAdmin', layout: 'admin', requiresAuth: true, adminTab: 'products', subTab: 'products', perm: 'UC12' }
   },
   {
     path: '/admin/categories',
     name: 'admin-categories',
-    // Sau này liên kết với Quản lý danh mục của Dương Văn Trọng Đại
     component: () => import('@/components/admin/index.vue'),
-    meta: { title: 'Quản Lý Danh Mục', layout: 'admin' }
+    meta: { title: 'Danh Mục & Thương Hiệu - ElectroAdmin', layout: 'admin', requiresAuth: true, adminTab: 'products', subTab: 'categories', perm: 'UC22' }
   },
   {
     path: '/admin/orders',
     name: 'admin-orders',
-    // Sau này liên kết với Quản lý đơn hàng & Kho Serial
     component: () => import('@/components/admin/index.vue'),
-    meta: { title: 'Quản Lý Đơn Hàng', layout: 'admin' }
+    meta: { title: 'Quản Lý Đơn Hàng - ElectroAdmin', layout: 'admin', requiresAuth: true, adminTab: 'orders', perm: 'UC14' }
   },
   {
     path: '/admin/serial',
     name: 'admin-serial',
-    component: () => import('@/components/serial/index.vue'),
-    meta: { title: 'Kho Serial & IMEI Độc Bản - TechMart Admin', layout: 'admin', requiresAuth: true }
+    component: () => import('@/components/admin/index.vue'),
+    meta: { title: 'Kho Serial & IMEI FIFO - ElectroAdmin', layout: 'admin', requiresAuth: true, adminTab: 'serial', perm: 'UC23' }
+  },
+  {
+    path: '/admin/vouchers',
+    name: 'admin-vouchers',
+    component: () => import('@/components/admin/index.vue'),
+    meta: { title: 'Quản Lý Voucher - ElectroAdmin', layout: 'admin', requiresAuth: true, adminTab: 'vouchers', subTab: 'vouchers', perm: 'UC13' }
+  },
+  {
+    path: '/admin/reviews',
+    name: 'admin-reviews',
+    component: () => import('@/components/admin/index.vue'),
+    meta: { title: 'Quản Lý Bình Luận - ElectroAdmin', layout: 'admin', requiresAuth: true, adminTab: 'vouchers', subTab: 'reviews', perm: 'UC16' }
+  },
+  {
+    path: '/admin/customers',
+    name: 'admin-customers',
+    component: () => import('@/components/admin/index.vue'),
+    meta: { title: 'Quản Lý Khách Hàng - ElectroAdmin', layout: 'admin', requiresAuth: true, adminTab: 'warranty', subTab: 'customers', perm: 'UC15' }
+  },
+  {
+    path: '/admin/warranty',
+    name: 'admin-warranty',
+    component: () => import('@/components/admin/index.vue'),
+    meta: { title: 'Bảo Hành & Đổi Trả - ElectroAdmin', layout: 'admin', requiresAuth: true, adminTab: 'warranty', subTab: 'tickets', perm: 'UC19' }
+  },
+  {
+    path: '/admin/staff',
+    name: 'admin-staff',
+    component: () => import('@/components/admin/index.vue'),
+    meta: { title: 'Quản Lý Nhân Viên - ElectroAdmin', layout: 'admin', requiresAuth: true, adminTab: 'staff', subTab: 'staff', perm: 'UC10' }
+  },
+  {
+    path: '/admin/permissions',
+    name: 'admin-permissions',
+    component: () => import('@/components/admin/index.vue'),
+    meta: { title: 'Phân Quyền Hệ Thống - ElectroAdmin', layout: 'admin', requiresAuth: true, adminTab: 'staff', subTab: 'rbac', perm: 'UC11' }
   },
   {
     path: '/serial',
     name: 'serial-page',
     component: () => import('@/components/serial/index.vue'),
-    meta: { title: 'Kho Serial & IMEI Độc Bản - TechMart Admin', layout: 'admin', requiresAuth: true }
+    meta: { title: 'Kho Serial & IMEI Độc Bản - TechMart Admin', layout: 'admin', requiresAuth: true, perm: 'UC23' }
   }
 ]
 
@@ -151,6 +215,18 @@ router.beforeEach((to, from, next) => {
     if (user.vai_tro === 'customer') {
       alert('Truy cập bị từ chối! Tài khoản của bạn là Khách hàng, không có quyền vào cổng Quản trị.');
       next({ path: '/' });
+      return;
+    }
+
+    // Kiểm tra phân quyền chi tiết theo từng chức năng
+    if (to.meta && to.meta.perm && !hasPermission(user, to.meta.perm)) {
+      const fallbackPath = getFirstAllowedAdminRoute(user);
+      if (fallbackPath && fallbackPath !== to.path) {
+        next({ path: fallbackPath });
+      } else {
+        alert('Bạn chưa được cấp quyền truy cập chức năng này!');
+        next({ path: '/' });
+      }
       return;
     }
   }
