@@ -169,6 +169,8 @@ Route::prefix('')->group(function () {
 
         //Bảo hành
         Route::get('tra-cuu-bao-hanh', [BaoHanhController::class, 'traCuu']);
+        Route::post('bao-hanh/gui-yeu-cau', [BaoHanhController::class, 'guiYeuCauClient']);
+        Route::get('bao-hanh/lich-su', [BaoHanhController::class, 'lichSuYeuCauClient']);
 
         //ChatBot AI
         Route::post('chat-ai', [ChatBotController::class, 'chatWithAI']);

@@ -430,6 +430,7 @@
 <script>
 import axios from 'axios';
 import { apiUrl } from '@/utils/api';
+import { confirmDialog } from '@/utils/notify';
 
 export default {
   name: 'CustomerProfileView',
@@ -588,7 +589,8 @@ export default {
       }
     },
     async handleDeleteAddress(id) {
-      if (!confirm('Bạn có chắc chắn muốn xóa địa chỉ này?')) return;
+      const confirmed = await confirmDialog('Bạn có chắc chắn muốn xóa địa chỉ này?', 'Xóa địa chỉ', 'Xóa');
+      if (!confirmed) return;
       try {
         const res = await axios.post(apiUrl('/client/profile/delete-address'), { id }, {
           headers: this.getAuthHeaders()

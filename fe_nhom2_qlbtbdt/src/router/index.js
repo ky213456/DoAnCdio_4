@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { hasPermission, getFirstAllowedAdminRoute } from '@/utils/permissions'
+import { toast } from '@/utils/notify'
 
 // ==========================================
 // 1. ĐƯỜNG TRUYỀN PHÍA NGƯỜI DÙNG (CLIENT ROUTES)
@@ -206,14 +207,14 @@ router.beforeEach((to, from, next) => {
 
     // Chưa đăng nhập
     if (!adminToken || !user) {
-      alert('Vui lòng đăng nhập tài khoản Quản trị viên để truy cập trang này!');
+      toast.warning('Vui lòng đăng nhập tài khoản Quản trị viên để truy cập trang này!');
       next({ path: '/login', query: { redirect: to.fullPath } });
       return;
     }
 
     // Đã đăng nhập nhưng vai_tro là customer -> Từ chối quyền
     if (user.vai_tro === 'customer') {
-      alert('Truy cập bị từ chối! Tài khoản của bạn là Khách hàng, không có quyền vào cổng Quản trị.');
+      toast.error('Truy cập bị từ chối! Tài khoản của bạn là Khách hàng, không có quyền vào cổng Quản trị.');
       next({ path: '/' });
       return;
     }
@@ -224,7 +225,7 @@ router.beforeEach((to, from, next) => {
       if (fallbackPath && fallbackPath !== to.path) {
         next({ path: fallbackPath });
       } else {
-        alert('Bạn chưa được cấp quyền truy cập chức năng này!');
+        toast.warning('Bạn chưa được cấp quyền truy cập chức năng này!');
         next({ path: '/' });
       }
       return;

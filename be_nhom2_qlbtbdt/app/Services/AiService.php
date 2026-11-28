@@ -25,8 +25,9 @@ class AiService
             ];
         }
 
-        // 1. Trích xuất toàn bộ ngữ cảnh & xu hướng (Trends) trực tiếp từ CSDL dự án
-        $dbContext = $this->buildDatabaseContext($userMessage);
+        // 1. Trích xuất ràng buộc lọc (giá, danh mục) từ câu hỏi & ngữ cảnh CSDL
+        $constraints = $this->extractQueryConstraints($userMessage);
+        $dbContext   = $this->buildDatabaseContext($userMessage, $constraints);
 
         // 2. Xây dựng System Instruction khóa chặt phạm vi trong CSDL TechMart
         $systemInstruction = $this->buildSystemInstruction($dbContext);
@@ -154,6 +155,9 @@ class AiService
                 $rawReply = trim(preg_replace('/`?\[\[SP_IDS:\s*[0-9,\s]+\s*\]\]`?/i', '', $rawReply));
             }
 
+            // Lọc hậu kiểm trong PHP để đảm bảo card sản phẩm đề xuất 100% khớp điều kiện giá/danh mục của khách
+            $suggestedIds = $this->filterSuggestedIdsByConstraints($suggestedIds, $constraints);
+
             $suggestedProducts = $this->fetchSuggestedProductCards(array_slice($suggestedIds, 0, 3));
 
             return [
@@ -176,9 +180,106 @@ class AiService
     }
 
     /**
+     * Trích xuất điều kiện lọc (giá tối đa/tối thiểu, danh mục) từ câu hỏi người dùng
+     */
+    protected function extractQueryConstraints(string $userMessage): array
+    {
+        $msg = mb_strtolower($userMessage, 'UTF-8');
+        $minPrice = null;
+        $maxPrice = null;
+        $categoryKeywords = [];
+
+        // Khoảng giá: "từ 15 đến 25 triệu", "15-25tr"
+        if (preg_match('/(?:từ\s*)?(\d+(?:[.,]\d+)?)\s*(?:triệu|tr|m)?\s*(?:đến|tới|-|~)\s*(\d+(?:[.,]\d+)?)\s*(?:triệu|tr|m)/u', $msg, $m)) {
+            $minPrice = (float) str_replace(',', '.', $m[1]) * 1000000;
+            $maxPrice = (float) str_replace(',', '.', $m[2]) * 1000000;
+        } else {
+            // Giá tối đa: "dưới 20 triệu", "dưới 20tr", "tối đa 20 triệu", "không quá 20tr", "< 20 triệu"
+            if (preg_match('/(?:dưới|nhỏ hơn|tối đa|không quá|<=|<|trở xuống)\s*(\d+(?:[.,]\d+)?)\s*(?:triệu|tr|m)?/u', $msg, $m) ||
+                preg_match('/(\d+(?:[.,]\d+)?)\s*(?:triệu|tr|m)\s*(?:trở xuống|đổ lại)/u', $msg, $m)) {
+                $val = (float) str_replace(',', '.', $m[1]);
+                $maxPrice = $val < 1000 ? $val * 1000000 : $val;
+            }
+            // Giá tối thiểu: "trên 20 triệu", "từ 20 triệu trở lên", "> 20tr"
+            if (preg_match('/(?:trên|lớn hơn|từ|>=|>)\s*(\d+(?:[.,]\d+)?)\s*(?:triệu|tr|m)/u', $msg, $m)) {
+                $val = (float) str_replace(',', '.', $m[1]);
+                $minPrice = $val < 1000 ? $val * 1000000 : $val;
+            }
+        }
+
+        // Nhận diện danh mục rõ ràng
+        if (preg_match('/\b(laptop|máy tính xách tay|macbook|ultrabook|thinkpad|zenbook)\b/u', $msg)) {
+            $categoryKeywords[] = 'laptop';
+        } elseif (preg_match('/(màn hình|monitor)/u', $msg)) {
+            $categoryKeywords[] = 'màn hình';
+        } elseif (preg_match('/\b(chuột|bàn phím|tai nghe|gaming gear|phụ kiện)\b/u', $msg)) {
+            $categoryKeywords[] = 'gear';
+        } elseif (preg_match('/\b(cpu|vi xử lý|ram|ssd|ổ cứng|vga|card đồ họa|card màn hình|linh kiện)\b/u', $msg)) {
+            $categoryKeywords[] = 'linh kiện';
+        }
+
+        return [
+            'min_price'         => $minPrice,
+            'max_price'         => $maxPrice,
+            'category_keywords' => $categoryKeywords,
+        ];
+    }
+
+    /**
+     * Lọc hậu kiểm danh sách ID đề xuất để đảm bảo không vượt ngân sách hoặc sai danh mục
+     */
+    protected function filterSuggestedIdsByConstraints(array $ids, array $constraints): array
+    {
+        if (empty($ids)) {
+            return [];
+        }
+
+        $minPrice = $constraints['min_price'] ?? null;
+        $maxPrice = $constraints['max_price'] ?? null;
+        $catKws   = $constraints['category_keywords'] ?? [];
+
+        if ($minPrice === null && $maxPrice === null && empty($catKws)) {
+            return $ids;
+        }
+
+        $rows = DB::table('san_pham')
+            ->leftJoin('danh_muc', 'san_pham.danh_muc_id', '=', 'danh_muc.id')
+            ->whereIn('san_pham.id', $ids)
+            ->select('san_pham.id', 'san_pham.gia_goc', 'san_pham.gia_khuyen_mai', 'danh_muc.ten_danh_muc', 'san_pham.ten_san_pham')
+            ->get()
+            ->keyBy('id');
+
+        $filtered = [];
+        foreach ($ids as $id) {
+            $p = $rows->get($id);
+            if (!$p) continue;
+
+            $price = ($p->gia_khuyen_mai && $p->gia_khuyen_mai > 0) ? (float) $p->gia_khuyen_mai : (float) $p->gia_goc;
+            if ($maxPrice !== null && $price > $maxPrice) continue;
+            if ($minPrice !== null && $price < $minPrice) continue;
+
+            if (!empty($catKws)) {
+                $catLower = mb_strtolower((string) ($p->ten_danh_muc ?? '') . ' ' . $p->ten_san_pham, 'UTF-8');
+                $matched = false;
+                foreach ($catKws as $kw) {
+                    if (str_contains($catLower, $kw)) {
+                        $matched = true;
+                        break;
+                    }
+                }
+                if (!$matched) continue;
+            }
+
+            $filtered[] = $id;
+        }
+
+        return $filtered;
+    }
+
+    /**
      * Trích xuất dữ liệu thực tế và phân tích Xu hướng (Trends) trực tiếp từ CSDL MySQL
      */
-    protected function buildDatabaseContext(string $userMessage): string
+    protected function buildDatabaseContext(string $userMessage, array $constraints = []): string
     {
         // 1. Lấy toàn bộ sản phẩm đang kinh doanh kèm Danh mục, Thương hiệu và Thông số kỹ thuật
         $products = DB::table('san_pham')
@@ -390,6 +491,50 @@ class AiService
         $minFormatted = $minPrice !== null ? number_format($minPrice, 0, ',', '.') . 'đ' : '0đ';
         $maxFormatted = $maxPrice !== null ? number_format($maxPrice, 0, ',', '.') . 'đ' : '0đ';
 
+        // 9. Tạo gợi ý lọc chính xác từ câu hỏi người dùng (giá / danh mục)
+        $filterHint = '';
+        $hasConstraints = ($constraints['min_price'] ?? null) !== null
+            || ($constraints['max_price'] ?? null) !== null
+            || !empty($constraints['category_keywords']);
+
+        if ($hasConstraints) {
+            $matchedIds = [];
+            foreach ($products as $p) {
+                $eff = ($p->gia_khuyen_mai && $p->gia_khuyen_mai > 0) ? (float) $p->gia_khuyen_mai : (float) $p->gia_goc;
+                if (($constraints['max_price'] ?? null) !== null && $eff > $constraints['max_price']) continue;
+                if (($constraints['min_price'] ?? null) !== null && $eff < $constraints['min_price']) continue;
+                if (!empty($constraints['category_keywords'])) {
+                    $catText = mb_strtolower((string) ($p->ten_danh_muc ?? '') . ' ' . $p->ten_san_pham, 'UTF-8');
+                    $ok = false;
+                    foreach ($constraints['category_keywords'] as $kw) {
+                        if (str_contains($catText, $kw)) { $ok = true; break; }
+                    }
+                    if (!$ok) continue;
+                }
+                $matchedIds[] = "[ID:{$p->id}] {$p->ten_san_pham} (" . number_format($eff, 0, ',', '.') . "đ)";
+            }
+
+            $condParts = [];
+            if (!empty($constraints['category_keywords'])) {
+                $condParts[] = 'Danh mục: ' . implode(', ', $constraints['category_keywords']);
+            }
+            if (($constraints['min_price'] ?? null) !== null) {
+                $condParts[] = 'Giá >= ' . number_format($constraints['min_price'], 0, ',', '.') . 'đ';
+            }
+            if (($constraints['max_price'] ?? null) !== null) {
+                $condParts[] = 'Giá <= ' . number_format($constraints['max_price'], 0, ',', '.') . 'đ';
+            }
+
+            $matchedText = !empty($matchedIds)
+                ? implode("\n", $matchedIds)
+                : 'KHÔNG CÓ SẢN PHẨM NÀO THỎA MÃN ĐIỀU KIỆN NÀY TRONG KHO.';
+
+            $filterHint = "\n=== BỘ LỌC BẮT BUỘC TRÍCH XUẤT TỪ CÂU HỎI HIỆN TẠI ===\n"
+                . "- Điều kiện khách yêu cầu: " . implode(' | ', $condParts) . "\n"
+                . "- Các sản phẩm ĐẠT CHUẨN 100% điều kiện:\n{$matchedText}\n"
+                . "- QUY TẮC CỨNG: CHỈ được phép giới thiệu và gắn [[SP_IDS:...]] các sản phẩm nằm trong danh sách ĐẠT CHUẨN ở trên. TUYỆT ĐỐI KHÔNG liệt kê thêm sản phẩm vượt mức giá tối đa hoặc sai danh mục.\n";
+        }
+
         return <<<CONTEXT
 === TỔNG QUAN & XU HƯỚNG DỮ LIỆU (TRENDS) TỪ CSDL TECHMART ===
 - Tổng số sản phẩm đang kinh doanh trong CSDL: {$products->count()} sản phẩm
@@ -398,7 +543,7 @@ class AiService
 - Dải giá sản phẩm hiện có trong kho: Từ {$minFormatted} đến {$maxFormatted}
 - Xu hướng Top sản phẩm được xem nhiều nhất: {$topViewed}
 - Xu hướng Top sản phẩm bán chạy nhất: {$topSoldText}
-
+{$filterHint}
 === DANH SÁCH CHI TIẾT TOÀN BỘ SẢN PHẨM TRONG CSDL ===
 {$this->implodeLines($productLines)}
 
@@ -423,10 +568,13 @@ Bạn là **Trợ lý AI TechMart**, chuyên gia tư vấn thiết bị điện 
 
 NHIỆM VỤ & QUY TẮC RÀNG BUỘC NGHIÊM NGẶT (BẮT BUỘC TUÂN THỦ 100%):
 
-1. **CHỈ SỬ DỤNG DỮ LIỆU TRONG CSDL DỰ ÁN**:
+1. **CHỈ SỬ DỤNG DỮ LIỆU TRONG CSDL DỰ ÁN & TUÂN THỦ BỘ LỌC NGHIÊM NGẶT**:
    - Mọi thông tin bạn trả lời về sản phẩm, thông số kỹ thuật (CPU, RAM, SSD, VGA, màn hình...), mức giá, bảo hành, tồn kho, xu hướng mua sắm (lượt xem, lượt bán, đánh giá) và mã giảm giá Voucher **PHẢI LẤY CHÍNH XÁC 100%** từ khối dữ liệu CSDL bên dưới.
    - **TUYỆT ĐỐI KHÔNG BỊA ĐẶT (NO HALLUCINATION)**: Không được tự nghĩ ra sản phẩm, thương hiệu, mức giá hay mã giảm giá không tồn tại trong CSDL bên dưới.
-   - Nếu khách hỏi mua một thiết bị điện tử KHÔNG CÓ trong CSDL hiện tại (ví dụ: điện thoại iPhone, MacBook, máy giặt, tivi, hoặc mẫu laptop không nằm trong danh sách 15 sản phẩm bên dưới), bạn PHẢI trả lời rõ: *"Dạ hiện tại trong Cơ sở dữ liệu kho hàng của TechMart chưa kinh doanh mẫu sản phẩm này."* Sau đó, chỉ gợi ý các sản phẩm tương đồng ĐANG CÓ SẴN trong CSDL (nếu phù hợp).
+   - **TUÂN THỦ CHẶT CHẼ ĐIỀU KIỆN GIÁ & THÔNG SỐ KHÁCH HÀNG HỎI**:
+     + Nếu khách hỏi **"dưới X triệu"**: CHỈ được giới thiệu và gắn `[[SP_IDS:...]]` các sản phẩm có giá hiện tại `<= X` triệu. **TUYỆT ĐỐI KHÔNG** đưa thêm sản phẩm có giá cao hơn X triệu vào danh sách gợi ý (kể cả ghi chú "hơi vượt ngân sách"). Nếu chỉ có 1 sản phẩm đạt điều kiện, chỉ tư vấn đúng 1 sản phẩm đó!
+     + Nếu khách hỏi đúng thông số (ví dụ: màn hình 2K / QHD `2560 x 1440`, Laptop chơi game có RTX, RAM DDR5...): chỉ chọn sản phẩm có thông số khớp chính xác yêu cầu.
+   - Nếu khách hỏi một thiết bị hoặc phân khúc KHÔNG CÓ trong CSDL hiện tại (ví dụ: máy giặt, tủ lạnh, hoặc không có sản phẩm nào đạt điều kiện giá/cấu hình), bạn PHẢI trả lời rõ: *"Dạ hiện tại trong Cơ sở dữ liệu kho hàng của TechMart chưa có mẫu sản phẩm đáp ứng đúng yêu cầu này."* Sau đó có thể hỏi khách có muốn nâng ngân sách hoặc tham khảo dòng sản phẩm khác không (không tự ý chèn card sai điều kiện vào `[[SP_IDS]]`).
 
 2. **KHÓA CHẶT PHẠM VI — TỪ CHỐI MỌI CÂU HỎI NGOÀI DỰ ÁN (STRICT OUT-OF-SCOPE REFUSAL)**:
    - Nếu người dùng hỏi bất kỳ nội dung nào KHÔNG LIÊN QUAN đến cửa hàng TechMart và CSDL dự án (ví dụ: hỏi thời tiết, nấu ăn, lịch sử, địa lý, chính trị, bóng đá, làm thơ, giải toán, viết code lập trình chung, dịch thuật, tâm sự đời tư...), bạn **TUYỆT ĐỐI KHÔNG TRẢ LỜI NỘI DUNG ĐÓ**.

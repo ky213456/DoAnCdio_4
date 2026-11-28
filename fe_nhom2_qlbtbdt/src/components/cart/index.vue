@@ -558,6 +558,7 @@
 
 <script>
 import axios from 'axios';
+import { toast, confirmDialog } from '@/utils/notify';
 
 export default {
   name: 'CartIndex',
@@ -670,8 +671,9 @@ export default {
         this.currentUser = null;
       }
     },
-    handleLogout() {
-      if (confirm('Bạn có chắc chắn muốn đăng xuất tài khoản?')) {
+    async handleLogout() {
+      const confirmed = await confirmDialog('Bạn có chắc chắn muốn đăng xuất khỏi tài khoản TechMart?', 'Đăng xuất tài khoản', 'Đăng xuất');
+      if (confirmed) {
         const token = localStorage.getItem('customer_token');
         if (token) {
           axios.post('http://127.0.0.1:8000/api/client/dang-xuat', {}, {
@@ -683,6 +685,7 @@ export default {
         localStorage.removeItem('user_id');
         localStorage.removeItem('user_name');
         this.currentUser = null;
+        toast.success('Đã đăng xuất tài khoản thành công!');
         window.dispatchEvent(new Event('auth-change'));
       }
     },
@@ -760,9 +763,11 @@ export default {
     },
     async deleteItem(idx) {
       const item = this.cartItems[idx];
-      if (confirm(`Bạn có chắc chắn muốn xóa "${item.name}" khỏi giỏ hàng?`)) {
+      const confirmed = await confirmDialog(`Bạn có chắc chắn muốn xóa "${item.name}" khỏi giỏ hàng?`, 'Xóa sản phẩm', 'Xóa');
+      if (confirmed) {
         const removed = this.cartItems.splice(idx, 1)[0];
         this.saveCartToStorage();
+        toast.info(`Đã xóa "${item.name}" khỏi giỏ hàng`);
         const targetId = removed ? (removed.gio_hang_id || removed.id) : null;
         if (targetId) {
           try {
@@ -776,9 +781,11 @@ export default {
       }
     },
     async clearAllCart() {
-      if (confirm('Bạn có chắc chắn muốn xóa toàn bộ sản phẩm trong giỏ hàng?')) {
+      const confirmed = await confirmDialog('Bạn có chắc chắn muốn xóa toàn bộ sản phẩm trong giỏ hàng?', 'Xóa giỏ hàng', 'Xóa tất cả', 'warning');
+      if (confirmed) {
         this.cartItems = [];
         this.saveCartToStorage();
+        toast.info('Đã làm trống giỏ hàng');
         const sessionId = localStorage.getItem('techmart_session_id');
         const userId = localStorage.getItem('user_id');
         try {
@@ -823,14 +830,15 @@ export default {
       this.isVoucherApplied = false;
       this.handleVoucherAction();
     },
-    handleCheckout() {
+    async handleCheckout() {
       if (this.selectedCount === 0) {
-        alert('Vui lòng chọn ít nhất 1 sản phẩm để thanh toán!');
+        toast.warning('Vui lòng chọn ít nhất 1 sản phẩm để thanh toán!');
         return;
       }
       const token = localStorage.getItem('customer_token');
       if (!token) {
-        if (confirm('Quý khách cần đăng nhập tài khoản TechMart để tiến hành thanh toán đơn hàng. Bạn có muốn chuyển tới trang Đăng nhập ngay không?')) {
+        const confirmed = await confirmDialog('Quý khách cần đăng nhập tài khoản TechMart để tiến hành thanh toán đơn hàng. Chuyển tới trang Đăng nhập ngay?', 'Yêu cầu đăng nhập', 'Đăng nhập ngay', 'info');
+        if (confirmed) {
           this.$router.push('/login?redirect=/checkout');
         }
         return;
