@@ -100,6 +100,9 @@
               <div class="text-muted" style="font-size: 11px;">{{ roleDisplayName }}</div>
             </div>
           </div>
+          <router-link to="/" class="btn btn-sm btn-outline-danger fw-semibold ms-1 text-decoration-none" title="Thoát khỏi trang quản trị về Website">
+            <i class="bi bi-box-arrow-right me-1"></i> Thoát
+          </router-link>
         </div>
       </header>
 
@@ -177,6 +180,7 @@
 import axios from 'axios';
 import { apiUrl } from '@/utils/api';
 import { hasPermission } from '@/utils/permissions';
+import { isDark, toggleTheme } from '@/utils/theme';
 import AdminOverviewTab from './tabs/AdminOverviewTab.vue';
 import AdminProductsTab from './tabs/AdminProductsTab.vue';
 import AdminOrdersTab from './tabs/AdminOrdersTab.vue';
@@ -224,6 +228,9 @@ export default {
     };
   },
   computed: {
+    themeIsDark() {
+      return isDark.value;
+    },
     adminInitial() {
       return (this.adminName || 'AD').substring(0, 2).toUpperCase();
     },
@@ -266,6 +273,9 @@ export default {
     if (this._visHandler) document.removeEventListener('visibilitychange', this._visHandler);
   },
   methods: {
+    handleToggleTheme() {
+      toggleTheme();
+    },
     initRealtimeSync() {
       try {
         if (typeof BroadcastChannel !== 'undefined') {

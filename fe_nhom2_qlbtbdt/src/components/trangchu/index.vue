@@ -27,7 +27,7 @@
           </span>
           <span class="divider">|</span>
           <router-link to="/admin" class="topbar-link text-warning fw-bold">
-            <i class="bi bi-speedometer2 me-1"></i> Admin BI Portal
+            <i class="bi bi-speedometer2 me-1"></i> Admin
           </router-link>
         </div>
       </div>
@@ -223,7 +223,7 @@
               </li>
             </ul>
             <div class="banner-action hero-cta-anim">
-              <button class="btn-hero-cta">
+              <button class="btn-hero-cta" @click="handleHeroCta">
                 {{ currentSlide.ctaText }} <i class="bi bi-chevron-double-right ms-1"></i>
               </button>
             </div>
@@ -263,7 +263,11 @@
         <!-- ❾ 2 Banner Phụ (Phải) có Hình Ảnh Thực Tế & Hiệu Ứng Hover -->
         <div class="hero-sub-banners">
           <!-- Sub-banner 1: Build PC Gaming -->
-          <div class="sub-banner-card sub-card-pc" style="background-image: url('https://images.unsplash.com/photo-1587202372634-32705e3bf49c?auto=format&fit=crop&w=600&q=80')">
+          <div
+            class="sub-banner-card sub-card-pc"
+            style="background-image: url('https://images.unsplash.com/photo-1587202372634-32705e3bf49c?auto=format&fit=crop&w=600&q=80'); cursor: pointer;"
+            @click="openAiBuildPc"
+          >
             <div class="sub-banner-overlay"></div>
             <div class="sub-banner-content">
               <div class="sub-badge"><i class="bi bi-tools me-1 text-primary"></i> DỊCH VỤ CHUYÊN NGHIỆP</div>
@@ -272,12 +276,16 @@
                 Giảm ngay 2.000.000đ khi ráp kèm Card RTX.<br />
                 Trợ lý AI tự động kiểm tra tương thích linh kiện.
               </p>
-              <a href="#" class="sub-link">Xem chi tiết <i class="bi bi-arrow-right ms-1"></i></a>
+              <a href="javascript:void(0)" class="sub-link" @click.stop="openAiBuildPc">Xem chi tiết <i class="bi bi-arrow-right ms-1"></i></a>
             </div>
           </div>
 
           <!-- Sub-banner 2: Smartphone Flagship -->
-          <div class="sub-banner-card sub-card-mobile" style="background-image: url('https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=600&q=80')">
+          <div
+            class="sub-banner-card sub-card-mobile"
+            style="background-image: url('https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=600&q=80'); cursor: pointer;"
+            @click="$router.push('/catalog')"
+          >
             <div class="sub-banner-overlay"></div>
             <div class="sub-banner-content">
               <div class="sub-badge"><i class="bi bi-stars me-1 text-warning"></i> FLAGSHIP MỚI NHẤT</div>
@@ -286,7 +294,7 @@
                 Thu cũ đổi mới trợ giá lên tới 3.000.000đ.<br />
                 Bảo hành điện tử 1 đổi 1 trong 30 ngày.
               </p>
-              <a href="#" class="sub-link">Khám phá ngay <i class="bi bi-arrow-right ms-1"></i></a>
+              <router-link to="/catalog" class="sub-link" @click.stop>Khám phá ngay <i class="bi bi-arrow-right ms-1"></i></router-link>
             </div>
           </div>
         </div>
@@ -319,7 +327,7 @@
       <div class="product-grid-4-cols flash-sale-grid">
         <!-- Render từ API nếu có dữ liệu -->
         <template v-if="list_flash_sale && list_flash_sale.length > 0">
-          <div v-for="(item, index) in list_flash_sale.slice(0, 8)" :key="item.id || index" class="product-card flash-card">
+          <div v-for="(item, index) in list_flash_sale.slice(0, 8)" :key="item.id || index" class="product-card flash-card cursor-pointer" style="cursor: pointer;" @click="openDetailModal(item)">
             <div class="discount-badge"><i class="bi bi-fire me-1"></i>HOT SALE</div>
             <div class="product-img-box">
               <img v-if="item.anh_chinh" :src="item.anh_chinh" :alt="item.ten_san_pham" @error="onImgError($event)" />
@@ -1560,6 +1568,7 @@
 <script>
 import axios from 'axios'
 import apiUrl from '../../utils/api'
+import { isDark, toggleTheme } from '../../utils/theme'
 
 export default {
   data() {
@@ -1724,6 +1733,9 @@ export default {
     }
   },
   computed: {
+    themeIsDark() {
+      return isDark.value;
+    },
     ringOffset() {
       const circumference = 2 * Math.PI * 19; // ~119.38
       return circumference - (circumference * (this.scrollProgress / 100));
@@ -1848,6 +1860,23 @@ export default {
     window.removeEventListener('scroll', this.handleScroll);
   },
   methods: {
+    handleHeroCta() {
+      const idx = this.currentHeroIndex;
+      if (idx === 0) {
+        this.$router.push('/catalog?category=laptop');
+      } else if (idx === 1) {
+        this.openAiBuildPc();
+      } else {
+        this.$router.push('/catalog?q=MacBook');
+      }
+    },
+    openAiBuildPc() {
+      this.isAiChatOpen = true;
+      this.sendAiMessage('Tư vấn giúp mình build PC Gaming kèm Card RTX và kiểm tra tương thích linh kiện');
+    },
+    handleToggleTheme() {
+      toggleTheme();
+    },
     onImgError(e) {
       e.target.onerror = null;
       e.target.src = 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/t/e/text_ng_n_1__1_96_1_1_1_1.png';
