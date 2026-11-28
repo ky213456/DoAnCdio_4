@@ -885,9 +885,7 @@
         <div class="footer-col">
           <h5 class="footer-heading">PHƯƠNG THỨC THANH TOÁN</h5>
           <ul class="footer-links">
-            <li><i class="bi bi-qr-code me-2"></i> Cổng thanh toán trực tuyến VNPAY QR</li>
-            <li><i class="bi bi-bank me-2"></i> Thanh toán chuyển khoản tự động PayOS</li>
-            <li><i class="bi bi-credit-card me-2"></i> Trả góp 0% qua thẻ tín dụng</li>
+            <li><i class="bi bi-qr-code-scan me-2"></i> Thanh toán chuyển khoản VietQR tự động PayOS</li>
             <li><i class="bi bi-cash-stack me-2"></i> Thanh toán tiền mặt khi nhận hàng (COD)</li>
           </ul>
         </div>

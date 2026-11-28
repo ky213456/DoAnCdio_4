@@ -335,34 +335,7 @@
 
             <div class="card-body-custom">
               <div class="payment-methods-stack">
-                <!-- 1. VNPAY Sandbox (Khuyên dùng) -->
-                <label
-                  class="payment-option-card"
-                  :class="{ 'option-selected': customerForm.phuong_thuc_thanh_toan === 'vnpay' }"
-                >
-                  <div class="d-flex align-items-center">
-                    <input
-                      type="radio"
-                      v-model="customerForm.phuong_thuc_thanh_toan"
-                      value="vnpay"
-                      class="form-check-input me-3"
-                    />
-                    <div class="payment-brand-badge vnpay-badge">
-                      <span class="vnpay-text">VNPAY</span>
-                    </div>
-                    <div class="ms-3">
-                      <strong class="d-block text-dark">
-                        Cổng thanh toán quốc gia VNPAY Sandbox
-                        <span class="badge bg-danger ms-2">Khuyên Dùng</span>
-                      </strong>
-                      <span class="text-muted small">
-                        Hỗ trợ quét VNPAY-QR qua hơn 40 ứng dụng ngân hàng, thẻ ATM nội địa (NCB) và thẻ Visa/Mastercard.
-                      </span>
-                    </div>
-                  </div>
-                </label>
-
-                <!-- 2. PayOS VietQR -->
+                <!-- 1. PayOS VietQR -->
                 <label
                   class="payment-option-card"
                   :class="{ 'option-selected': customerForm.phuong_thuc_thanh_toan === 'payos' }"
@@ -646,7 +619,7 @@ export default {
         so_dien_thoai: '',
         email: '',
         ghi_chu: '',
-        phuong_thuc_thanh_toan: 'vnpay' // Mặc định VNPAY
+        phuong_thuc_thanh_toan: 'payos' // Mặc định PayOS VietQR
       },
 
       // Form địa chỉ phân cấp
@@ -1099,7 +1072,6 @@ export default {
 
     getSubmitButtonText() {
       const method = this.customerForm.phuong_thuc_thanh_toan
-      if (method === 'vnpay') return 'THANH TOÁN QUA CỔNG VNPAY >>'
       if (method === 'payos') return 'THANH TOÁN QUA PAYOS VIETQR >>'
       return 'XÁC NHẬN ĐẶT HÀNG (COD) >>'
     },
@@ -1156,13 +1128,7 @@ export default {
             return
           }
 
-          // 2. Chuyển hướng nếu là VNPAY
-          if (res.data.payment_method === 'vnpay' && res.data.payment_url) {
-            window.location.href = res.data.payment_url
-            return
-          }
-
-          // 3. Nếu là COD -> Mở modal thành công
+          // 2. Nếu là COD -> Mở modal thành công
           this.successOrderModal = res.data.don_hang || {
             ma_don_hang: 'DH' + Date.now().toString().slice(-6),
             ho_ten_nguoi_nhan: this.customerForm.ho_ten,

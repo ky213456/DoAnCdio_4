@@ -180,14 +180,9 @@ Route::prefix('')->group(function () {
 });
 
 // ==========================================
-// 3. ROUTE CỔNG THANH TOÁN PAYOS & VNPAY
+// 3. ROUTE CỔNG THANH TOÁN PAYOS
 // ==========================================
 Route::prefix('/payment/payos')->group(function () {
     Route::get('/verify/{orderCode}', [ThanhToanController::class, 'verifyPayOs']);
     Route::post('/webhook', [ThanhToanController::class, 'payOsWebhook']);
-});
-
-Route::prefix('/payment/vnpay')->group(function () {
-    Route::get('/verify', [ThanhToanController::class, 'verifyVnPay']);
-    Route::get('/ipn', [ThanhToanController::class, 'vnpayIpn']);
 });

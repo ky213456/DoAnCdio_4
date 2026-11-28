@@ -345,15 +345,6 @@
                 <i class="bi bi-x-circle me-1"></i> Hủy đơn
               </button>
 
-              <!-- Nút Thanh toán lại qua VNPAY nếu đơn VNPAY chưa thanh toán -->
-              <button
-                v-if="order.phuong_thuc_thanh_toan === 'vnpay' && order.trang_thai_thanh_toan === 'chua_thanh_toan' && order.trang_thai_don_hang !== 'da_huy'"
-                class="btn btn-sm btn-danger"
-                @click="repayVnpay(order)"
-              >
-                <i class="bi bi-credit-card-2-front me-1"></i> Thanh toán VNPAY ngay
-              </button>
-
               <!-- Nút Mua lại -->
               <button class="btn btn-sm btn-primary" @click="buyAgain(order)">
                 <i class="bi bi-arrow-repeat me-1"></i> Mua lại
