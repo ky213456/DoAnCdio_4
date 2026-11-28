@@ -174,7 +174,7 @@ class SanPhamSeeder extends Seeder
                 'ma_san_pham' => 'SP-ROG-G16-4060',
                 'anh_chinh' => 'https://cdn2.cellphones.com.vn/insecure/rs:fill:0:358/q:90/plain/https://cellphones.com.vn/media/catalog/product/t/e/text_ng_n_1__1_96_1_1_1_1.png',
                 'gia_goc' => 39990000,
-                'gia_khuyen_mai' => 5000,
+                'gia_khuyen_mai' => 35990000,
                 'thoi_gian_bao_hanh' => 24,
                 'mo_ta_ngan' => 'Laptop Gaming đỉnh cao trang bị vi xử lý Intel Core i7-13650HX 14 nhân 20 luồng, Card đồ họa rời NVIDIA GeForce RTX 4060 8GB TGP 140W, RAM 16GB DDR5 4800MHz, SSD 512GB PCIe 4.0.',
                 'noi_dung_chi_tiet' => '<p>Chiến mượt mọi tựa game AAA với sức mạnh từ CPU Intel thế hệ 13 và GPU RTX 40 series cùng hệ thống tản nhiệt ba quạt thông minh.</p>',

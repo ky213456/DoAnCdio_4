@@ -293,6 +293,14 @@
                   >
                     <i class="bi bi-shield-check me-1"></i>Tra cứu BH
                   </router-link>
+                  <router-link
+                    :to="'/warranty?serial=' + encodeURIComponent(s.so_serial) + '&action=request'"
+                    class="btn btn-sm btn-outline-warning text-dark py-0 px-2 ms-1"
+                    style="font-size: 11.5px;"
+                    title="Gửi yêu cầu bảo hành hoặc đổi trả thiết bị này"
+                  >
+                    <i class="bi bi-tools me-1"></i>Yêu cầu BH / Đổi trả
+                  </router-link>
                 </div>
               </div>
             </div>
@@ -531,6 +539,7 @@
 
 <script>
 import axios from 'axios'
+import { toast } from '@/utils/notify'
 
 export default {
   name: 'TechMartMyOrders',
@@ -683,7 +692,7 @@ export default {
 
     lookupOrdersByPhone() {
       if (!this.lookupPhone.trim()) {
-        alert('Vui lòng nhập số điện thoại để tra cứu đơn hàng!')
+        toast.warning('Vui lòng nhập số điện thoại để tra cứu đơn hàng!')
         return
       }
       this.loadOrders()
@@ -817,7 +826,7 @@ export default {
           const cancelledCode = this.orderToCancel.ma_don_hang
           const cancelledId = this.orderToCancel.id
           this.broadcastOrderEvent('ORDER_CANCELLED', { orderId: cancelledId, maDonHang: cancelledCode })
-          alert(`Hủy đơn hàng #${cancelledCode} thành công!`)
+          toast.success(`Hủy đơn hàng #${cancelledCode} thành công!`)
           this.closeCancelModal()
           await this.loadOrders()
         } else {
@@ -832,7 +841,7 @@ export default {
 
     repayVnpay(order) {
       // Có thể chuyển hướng sang trang thanh toán lại hoặc tạo phiên mới
-      alert(`Đang mở lại cổng thanh toán VNPAY cho đơn hàng #${order.ma_don_hang}...`)
+      toast.info(`Đang mở lại cổng thanh toán VNPAY cho đơn hàng #${order.ma_don_hang}...`)
       this.$router.push('/checkout')
     },
 
@@ -856,7 +865,7 @@ export default {
     copyToClipboard(text) {
       if (!text) return
       navigator.clipboard.writeText(text).then(() => {
-        alert(`Đã sao chép mã đơn hàng: #${text}`)
+        toast.success(`Đã sao chép mã đơn hàng: #${text}`)
       })
     },
 

@@ -150,7 +150,7 @@
           <!-- ========================================== -->
           <!-- 2. TAB ĐĂNG KÝ (REGISTER) -->
           <!-- ========================================== -->
-          <form v-else @submit.prevent="handleRegister" class="auth-form">
+          <form v-else @submit.prevent="handleRegister" class="auth-form" novalidate>
             <div class="form-group">
               <label class="form-label">
                 <i class="bi bi-person-badge-fill me-1 text-primary"></i> Họ và tên <span class="required">*</span>
@@ -185,7 +185,7 @@
 
             <div class="form-group">
               <label class="form-label">
-                <i class="bi bi-telephone-fill me-1 text-primary"></i> Số điện thoại
+                <i class="bi bi-telephone-fill me-1 text-primary"></i> Số điện thoại <span class="required">*</span>
               </label>
               <div class="input-with-icon">
                 <input
@@ -193,6 +193,7 @@
                   v-model.trim="registerForm.so_dien_thoai"
                   class="form-control"
                   placeholder="Ví dụ: 0905123456"
+                  required
                 />
                 <i class="bi bi-telephone input-icon"></i>
               </div>
@@ -278,6 +279,7 @@
 
 <script>
 import axios from 'axios'
+import { toast } from 'vue3-toastify'
 import apiUrl from '../../utils/api'
 
 export default {
@@ -303,7 +305,7 @@ export default {
         password: '',
         password_confirmation: '',
         dia_chi: 'Đà Nẵng, Việt Nam',
-        agreeTerms: true
+        agreeTerms: false
       }
     }
   },
@@ -358,6 +360,7 @@ export default {
         if (res.data && res.data.status) {
           this.alertType = 'success';
           this.alertMessage = res.data.message || 'Đăng nhập thành công!';
+          toast.success(this.alertMessage);
 
           // Lưu token & user info
           localStorage.setItem('customer_token', res.data.token);
@@ -376,6 +379,7 @@ export default {
         } else {
           this.alertType = 'danger';
           this.alertMessage = res.data ? res.data.message : 'Đăng nhập không thành công!';
+          toast.error(this.alertMessage);
         }
       } catch (err) {
         console.error('Lỗi đăng nhập:', err);
@@ -385,19 +389,57 @@ export default {
         } else {
           this.alertMessage = 'Lỗi kết nối máy chủ! Vui lòng thử lại sau.';
         }
+        toast.error(this.alertMessage);
       } finally {
         this.isLoading = false;
       }
     },
     async handleRegister() {
+      this.alertMessage = '';
+
+      if (!this.registerForm.ho_ten) {
+        this.alertType = 'danger';
+        this.alertMessage = 'Vui lòng nhập họ và tên!';
+        toast.warning(this.alertMessage);
+        return;
+      }
+
+      if (!this.registerForm.email || !/^\S+@\S+\.\S+$/.test(this.registerForm.email)) {
+        this.alertType = 'danger';
+        this.alertMessage = 'Vui lòng nhập địa chỉ email hợp lệ!';
+        toast.warning(this.alertMessage);
+        return;
+      }
+
+      if (!this.registerForm.so_dien_thoai) {
+        this.alertType = 'danger';
+        this.alertMessage = 'Vui lòng nhập số điện thoại bắt buộc!';
+        toast.warning(this.alertMessage);
+        return;
+      }
+
+      if (!this.registerForm.password || this.registerForm.password.length < 6) {
+        this.alertType = 'danger';
+        this.alertMessage = 'Mật khẩu phải có ít nhất 6 ký tự!';
+        toast.warning(this.alertMessage);
+        return;
+      }
+
       if (this.registerForm.password !== this.registerForm.password_confirmation) {
         this.alertType = 'danger';
         this.alertMessage = 'Mật khẩu xác nhận không khớp, vui lòng nhập lại!';
+        toast.error(this.alertMessage);
+        return;
+      }
+
+      if (!this.registerForm.agreeTerms) {
+        this.alertType = 'danger';
+        this.alertMessage = 'Bạn phải tích đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của TechMart!';
+        toast.warning(this.alertMessage);
         return;
       }
 
       this.isLoading = true;
-      this.alertMessage = '';
       const sessionId = localStorage.getItem('techmart_session_id');
 
       try {
@@ -411,24 +453,19 @@ export default {
         });
 
         if (res.data && res.data.status) {
+          const registeredEmail = this.registerForm.email;
+          toast.success('Đăng ký tài khoản thành công! Vui lòng đăng nhập để tiếp tục.');
+
+          // Không đăng nhập thẳng — chuyển sang Tab Đăng nhập và điền sẵn email
+          this.switchTab('login');
+          this.loginForm.email = registeredEmail;
+          this.loginForm.password = '';
           this.alertType = 'success';
-          this.alertMessage = res.data.message || 'Đăng ký tài khoản thành công!';
-
-          // Lưu token & user info
-          localStorage.setItem('customer_token', res.data.token);
-          localStorage.setItem('customer_user', JSON.stringify(res.data.user));
-          localStorage.setItem('user_id', res.data.user.id);
-          localStorage.setItem('user_name', res.data.user.ho_ten);
-
-          window.dispatchEvent(new Event('auth-change'));
-
-          const redirectPath = this.$route.query.redirect || '/';
-          setTimeout(() => {
-            this.$router.push(redirectPath);
-          }, 1000);
+          this.alertMessage = 'Tạo tài khoản thành công! Vui lòng nhập mật khẩu để đăng nhập.';
         } else {
           this.alertType = 'danger';
           this.alertMessage = res.data ? res.data.message : 'Đăng ký thất bại!';
+          toast.error(this.alertMessage);
         }
       } catch (err) {
         console.error('Lỗi đăng ký:', err);
@@ -438,12 +475,13 @@ export default {
         } else {
           this.alertMessage = 'Đăng ký không thành công, vui lòng kiểm tra lại thông tin!';
         }
+        toast.error(this.alertMessage);
       } finally {
         this.isLoading = false;
       }
     },
     showForgotAlert() {
-      alert('Để thiết lập lại mật khẩu, quý khách vui lòng liên hệ Tổng đài CSKH TechMart: 1900.6789 hoặc cung cấp CCCD qua email support@techmart.vn để được hỗ trợ bảo mật!');
+      toast.info('Vui lòng liên hệ Tổng đài CSKH TechMart: 1900.6789 hoặc email support@techmart.vn để được hỗ trợ đặt lại mật khẩu!');
     }
   }
 }

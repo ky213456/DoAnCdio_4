@@ -151,12 +151,12 @@
           </div>
           <!-- Khi chưa đăng nhập: Nút Đăng nhập / Đăng ký -->
           <div class="guest-auth-actions" v-else>
-            <button class="btn-header-login" @click="openAuthModal('login')">
+            <button type="button" class="btn-header-login" @click="openAuthModal('login')">
               <i class="bi bi-box-arrow-in-right me-1"></i> {{ t('login') }}
             </button>
-            <router-link to="/register" class="btn-header-register">
+            <button type="button" class="btn-header-register" @click="openAuthModal('register')">
               <i class="bi bi-person-plus me-1"></i> {{ t('register') }}
-            </router-link>
+            </button>
           </div>
         </div>
       </div>
@@ -1217,13 +1217,13 @@
             </form>
 
             <!-- FORM 2: ĐĂNG KÝ -->
-            <form v-else @submit.prevent="handleModalRegister" class="modal-auth-form">
+            <form v-else @submit.prevent="handleModalRegister" class="modal-auth-form" novalidate>
               <div class="form-group mb-2">
                 <label class="modal-label">Họ và tên <span class="text-danger">*</span></label>
                 <div class="input-with-icon">
                   <input
                     type="text"
-                    v-model="modalRegisterForm.ho_ten"
+                    v-model.trim="modalRegisterForm.ho_ten"
                     class="form-control modal-input"
                     placeholder="Nhập họ và tên"
                     required
@@ -1237,7 +1237,7 @@
                 <div class="input-with-icon">
                   <input
                     type="email"
-                    v-model="modalRegisterForm.email"
+                    v-model.trim="modalRegisterForm.email"
                     class="form-control modal-input"
                     placeholder="name@example.com"
                     required
@@ -1247,19 +1247,20 @@
               </div>
 
               <div class="form-group mb-2">
-                <label class="modal-label">Số điện thoại</label>
+                <label class="modal-label">Số điện thoại <span class="text-danger">*</span></label>
                 <div class="input-with-icon">
                   <input
                     type="tel"
-                    v-model="modalRegisterForm.so_dien_thoai"
+                    v-model.trim="modalRegisterForm.so_dien_thoai"
                     class="form-control modal-input"
                     placeholder="Ví dụ: 0905123456"
+                    required
                   />
                   <i class="bi bi-telephone input-icon"></i>
                 </div>
               </div>
 
-              <div class="row g-2 mb-3">
+              <div class="row g-2 mb-2">
                 <div class="col-6">
                   <label class="modal-label">Mật khẩu <span class="text-danger">*</span></label>
                   <input
@@ -1283,9 +1284,21 @@
                 </div>
               </div>
 
+              <div class="form-check mb-3">
+                <input
+                  class="form-check-input"
+                  type="checkbox"
+                  id="modalAgreeTerms"
+                  v-model="modalRegisterForm.agreeTerms"
+                />
+                <label class="form-check-label small text-muted" for="modalAgreeTerms">
+                  Tôi đồng ý với <a href="javascript:void(0)" class="text-primary text-decoration-none">Điều khoản dịch vụ</a> và <a href="javascript:void(0)" class="text-primary text-decoration-none">Chính sách bảo mật</a> của TechMart. <span class="text-danger">*</span>
+                </label>
+              </div>
+
               <button type="submit" class="btn-modal-submit btn-modal-register" :disabled="isModalLoading">
                 <span v-if="isModalLoading" class="spinner-border spinner-border-sm me-2"></span>
-                <span v-if="!isModalLoading">TẠO TÀI KHOẢN & TIẾP TỤC</span>
+                <span v-if="!isModalLoading">TẠO TÀI KHOẢN</span>
                 <span v-else>ĐANG XỬ LÝ...</span>
                 <i class="bi bi-check-circle-fill ms-2" v-if="!isModalLoading"></i>
               </button>
@@ -1573,6 +1586,7 @@
 import axios from 'axios'
 import apiUrl from '../../utils/api'
 import { isDark, toggleTheme } from '../../utils/theme'
+import { toast, confirmDialog } from '../../utils/notify'
 import { currentLang, setLang, t as translate } from '../../utils/i18n'
 
 export default {
@@ -1709,7 +1723,8 @@ export default {
         email: '',
         so_dien_thoai: '',
         password: '',
-        password_confirmation: ''
+        password_confirmation: '',
+        agreeTerms: false
       },
       pendingAuthAction: null,
 
@@ -1923,6 +1938,7 @@ export default {
       this.modalRegisterForm.so_dien_thoai = '';
       this.modalRegisterForm.password = '';
       this.modalRegisterForm.password_confirmation = '';
+      this.modalRegisterForm.agreeTerms = false;
       this.showAuthModal = true;
     },
     async handleModalLogin() {
@@ -1940,6 +1956,7 @@ export default {
         if (res.data && res.data.status) {
           this.modalAlertType = 'success';
           this.modalAlertMessage = res.data.message || 'Đăng nhập thành công!';
+          toast.success(this.modalAlertMessage);
 
           localStorage.setItem('customer_token', res.data.token);
           localStorage.setItem('customer_user', JSON.stringify(res.data.user));
@@ -1962,6 +1979,7 @@ export default {
         } else {
           this.modalAlertType = 'danger';
           this.modalAlertMessage = res.data ? res.data.message : 'Đăng nhập không thành công!';
+          toast.error(this.modalAlertMessage);
         }
       } catch (err) {
         this.modalAlertType = 'danger';
@@ -1970,19 +1988,57 @@ export default {
         } else {
           this.modalAlertMessage = 'Lỗi kết nối máy chủ! Vui lòng thử lại sau.';
         }
+        toast.error(this.modalAlertMessage);
       } finally {
         this.isModalLoading = false;
       }
     },
     async handleModalRegister() {
+      this.modalAlertMessage = '';
+
+      if (!this.modalRegisterForm.ho_ten) {
+        this.modalAlertType = 'danger';
+        this.modalAlertMessage = 'Vui lòng nhập họ và tên!';
+        toast.warning(this.modalAlertMessage);
+        return;
+      }
+
+      if (!this.modalRegisterForm.email || !/^\S+@\S+\.\S+$/.test(this.modalRegisterForm.email)) {
+        this.modalAlertType = 'danger';
+        this.modalAlertMessage = 'Vui lòng nhập địa chỉ email hợp lệ!';
+        toast.warning(this.modalAlertMessage);
+        return;
+      }
+
+      if (!this.modalRegisterForm.so_dien_thoai) {
+        this.modalAlertType = 'danger';
+        this.modalAlertMessage = 'Vui lòng nhập số điện thoại bắt buộc!';
+        toast.warning(this.modalAlertMessage);
+        return;
+      }
+
+      if (!this.modalRegisterForm.password || this.modalRegisterForm.password.length < 6) {
+        this.modalAlertType = 'danger';
+        this.modalAlertMessage = 'Mật khẩu phải có ít nhất 6 ký tự!';
+        toast.warning(this.modalAlertMessage);
+        return;
+      }
+
       if (this.modalRegisterForm.password !== this.modalRegisterForm.password_confirmation) {
         this.modalAlertType = 'danger';
         this.modalAlertMessage = 'Mật khẩu xác nhận không khớp, vui lòng nhập lại!';
+        toast.error(this.modalAlertMessage);
+        return;
+      }
+
+      if (!this.modalRegisterForm.agreeTerms) {
+        this.modalAlertType = 'danger';
+        this.modalAlertMessage = 'Bạn phải tích đồng ý với Điều khoản dịch vụ và Chính sách bảo mật của TechMart!';
+        toast.warning(this.modalAlertMessage);
         return;
       }
 
       this.isModalLoading = true;
-      this.modalAlertMessage = '';
       const sessionId = this.getSessionId();
 
       try {
@@ -1995,29 +2051,19 @@ export default {
         });
 
         if (res.data && res.data.status) {
+          const registeredEmail = this.modalRegisterForm.email;
+          toast.success('Đăng ký tài khoản thành công! Vui lòng đăng nhập để tiếp tục.');
+
+          // Không đăng nhập thẳng — chuyển sang Tab Đăng nhập và điền sẵn email
+          this.modalTab = 'login';
+          this.modalLoginForm.email = registeredEmail;
+          this.modalLoginForm.password = '';
           this.modalAlertType = 'success';
-          this.modalAlertMessage = res.data.message || 'Tạo tài khoản thành công!';
-
-          localStorage.setItem('customer_token', res.data.token);
-          localStorage.setItem('customer_user', JSON.stringify(res.data.user));
-          localStorage.setItem('user_id', res.data.user.id);
-          localStorage.setItem('user_name', res.data.user.ho_ten);
-
-          this.currentUser = res.data.user;
-          this.fetchCartData();
-          window.dispatchEvent(new Event('auth-change'));
-
-          setTimeout(() => {
-            this.closeAuthModal();
-            if (typeof this.pendingAuthAction === 'function') {
-              const act = this.pendingAuthAction;
-              this.pendingAuthAction = null;
-              act();
-            }
-          }, 450);
+          this.modalAlertMessage = 'Tạo tài khoản thành công! Vui lòng nhập mật khẩu để đăng nhập.';
         } else {
           this.modalAlertType = 'danger';
           this.modalAlertMessage = res.data ? res.data.message : 'Đăng ký thất bại!';
+          toast.error(this.modalAlertMessage);
         }
       } catch (err) {
         this.modalAlertType = 'danger';
@@ -2026,12 +2072,14 @@ export default {
         } else {
           this.modalAlertMessage = 'Đăng ký không thành công, vui lòng kiểm tra lại!';
         }
+        toast.error(this.modalAlertMessage);
       } finally {
         this.isModalLoading = false;
       }
     },
-    handleLogout() {
-      if (confirm('Bạn có chắc chắn muốn đăng xuất tài khoản?')) {
+    async handleLogout() {
+      const confirmed = await confirmDialog('Bạn có chắc chắn muốn đăng xuất khỏi tài khoản TechMart?', 'Đăng xuất tài khoản', 'Đăng xuất');
+      if (confirmed) {
         const token = localStorage.getItem('customer_token');
         if (token) {
           axios.post(apiUrl('client/dang-xuat'), {}, {
@@ -2044,7 +2092,7 @@ export default {
         localStorage.removeItem('user_name');
         this.currentUser = null;
         this.showUserMenu = false;
-        this.showCartToast('Đã đăng xuất tài khoản thành công!');
+        toast.success('Đã đăng xuất tài khoản thành công!');
         window.dispatchEvent(new Event('auth-change'));
       }
     },
@@ -2115,7 +2163,7 @@ export default {
           throw new Error(res.data ? res.data.message : 'Lỗi');
         }
       } catch (err) {
-        alert((err && err.response && err.response.data && err.response.data.message) || 'Không thể thêm vào giỏ hàng qua API. Vui lòng kiểm tra Backend!');
+        toast.error((err && err.response && err.response.data && err.response.data.message) || 'Không thể thêm vào giỏ hàng qua API. Vui lòng kiểm tra Backend!');
       } finally {
         setTimeout(() => {
           item.isAdding = false;
@@ -2565,7 +2613,7 @@ export default {
         return;
       }
       if (!this.newReview.noi_dung || this.newReview.noi_dung.trim().length < 5) {
-        alert('Nội dung đánh giá phải có ít nhất 5 ký tự!');
+        toast.warning('Nội dung đánh giá phải có ít nhất 5 ký tự!');
         return;
       }
       this.isSubmittingReview = true;
@@ -2579,16 +2627,16 @@ export default {
         });
 
         if (res.data && res.data.status) {
-          this.showCartToast(res.data.message || 'Gửi đánh giá thành công!');
+          toast.success(res.data.message || 'Gửi đánh giá thành công!');
           this.newReview.noi_dung = '';
           this.newReview.so_sao = 5;
           await this.loadReviews(this.selectedDetailProduct.id);
         } else {
-          alert(res.data ? res.data.message : 'Không thể gửi đánh giá');
+          toast.error(res.data ? res.data.message : 'Không thể gửi đánh giá');
         }
       } catch (err) {
         const msg = err.response?.data?.message || 'Có lỗi khi gửi đánh giá';
-        alert(msg);
+        toast.error(msg);
       } finally {
         this.isSubmittingReview = false;
       }

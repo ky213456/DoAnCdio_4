@@ -468,6 +468,7 @@
 <script>
 import axios from 'axios';
 import { apiUrl } from '@/utils/api';
+import { toast } from '@/utils/notify';
 
 export default {
   name: 'TechMartProductCatalog',
@@ -922,7 +923,7 @@ export default {
         this.compareList.splice(idx, 1);
       } else {
         if (this.compareList.length >= 4) {
-          alert('Tối đa so sánh 4 sản phẩm cùng lúc!');
+          toast.warning('Tối đa so sánh 4 sản phẩm cùng lúc!');
           return;
         }
         this.compareList.push(item);

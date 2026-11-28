@@ -101,7 +101,7 @@ class KhachHangController extends Controller
             'ho_ten'        => 'required|string|max:100',
             'email'         => 'required|email|unique:nguoi_dung,email',
             'password'      => 'required|string|min:6',
-            'so_dien_thoai' => 'nullable|string|max:20|unique:nguoi_dung,so_dien_thoai',
+            'so_dien_thoai' => 'required|string|max:20|unique:nguoi_dung,so_dien_thoai',
             'dia_chi'       => 'nullable|string|max:255',
         ], [
             'ho_ten.required'        => 'Vui lòng nhập họ và tên',
@@ -110,6 +110,7 @@ class KhachHangController extends Controller
             'email.unique'           => 'Email này đã được sử dụng trên hệ thống',
             'password.required'      => 'Vui lòng nhập mật khẩu',
             'password.min'           => 'Mật khẩu phải chứa ít nhất 6 ký tự',
+            'so_dien_thoai.required' => 'Vui lòng nhập số điện thoại',
             'so_dien_thoai.unique'   => 'Số điện thoại này đã được đăng ký',
         ]);
 

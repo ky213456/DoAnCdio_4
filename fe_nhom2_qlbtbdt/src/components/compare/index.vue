@@ -366,6 +366,7 @@
 <script>
 import axios from 'axios';
 import { apiUrl } from '@/utils/api';
+import { confirmDialog } from '@/utils/notify';
 
 export default {
   name: 'ProductCompareView',
@@ -565,14 +566,15 @@ export default {
       return this.allCatalogProducts.filter(p => this.detectProductType(p) === type).length;
     },
     // Chuyển danh mục so sánh
-    switchCategoryType(type) {
+    async switchCategoryType(type) {
       if (this.currentCategoryType === type) return;
 
       // Nếu đang có sản phẩm thuộc loại cũ, hỏi hoặc làm mới
       if (this.products.length > 0) {
         const hasDifferent = this.products.some(p => this.detectProductType(p) !== type);
         if (hasDifferent) {
-          if (!confirm(`Bạn đang so sánh danh sách ${this.activeCategoryName}. Bạn có muốn xóa danh sách cũ để chuyển sang so sánh ${this.getCategoryLabel(type)} không?`)) {
+          const confirmed = await confirmDialog(`Bạn đang so sánh danh sách ${this.activeCategoryName}. Bạn có muốn xóa danh sách cũ để chuyển sang so sánh ${this.getCategoryLabel(type)} không?`, 'Đổi danh mục so sánh', 'Chuyển đổi');
+          if (!confirmed) {
             return;
           }
           this.products = [];

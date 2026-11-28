@@ -50,10 +50,128 @@ class BaoHanhController extends Controller
             ], 404);
         }
 
+        // Kèm lịch sử phiếu bảo hành / đổi trả của serial này (nếu có)
+        $tickets = PhieuBaoHanh::where('so_serial', $data->so_serial)
+            ->orWhere('serial_id', $data->id)
+            ->orderBy('id', 'desc')
+            ->get();
+
         return response()->json([
             'status'  => true,
             'message' => 'Tra cứu dữ liệu bảo hành thành công',
             'data'    => $data,
+            'tickets' => $tickets,
+        ]);
+    }
+
+    /**
+     * Khách hàng gửi yêu cầu Bảo hành / Đổi trả trực tuyến
+     */
+    public function guiYeuCauClient(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'ten_khach_hang' => 'required|string|max:120',
+            'so_dien_thoai'  => 'required|string|max:20',
+            'ten_thiet_bi'   => 'required|string|max:255',
+            'loai_yeu_cau'   => 'required|in:bao_hanh,doi_tra',
+            'mo_ta_loi'      => 'required|string|min:5',
+        ], [
+            'ten_khach_hang.required' => 'Vui lòng nhập họ tên khách hàng',
+            'so_dien_thoai.required'  => 'Vui lòng nhập số điện thoại liên hệ',
+            'ten_thiet_bi.required'   => 'Vui lòng nhập tên thiết bị cần bảo hành / đổi trả',
+            'loai_yeu_cau.in'         => 'Loại yêu cầu không hợp lệ (bao_hanh hoặc doi_tra)',
+            'mo_ta_loi.required'      => 'Vui lòng mô tả tình trạng lỗi hoặc lý do đổi trả',
+            'mo_ta_loi.min'           => 'Mô tả tình trạng lỗi tối thiểu 5 ký tự',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['status' => false, 'message' => $validator->errors()->first()], 422);
+        }
+
+        $serialRecord = null;
+        $soSerial = $request->filled('so_serial') ? trim($request->so_serial) : null;
+
+        if ($soSerial) {
+            $serialRecord = SerialSanPham::where('so_serial', $soSerial)
+                ->orWhere('imei', $soSerial)
+                ->first();
+
+            // Kiểm tra xem có phiếu nào đang xử lý (chưa trả hàng) cho serial này không
+            $activeTicket = PhieuBaoHanh::where(function ($q) use ($soSerial, $serialRecord) {
+                    $q->where('so_serial', $soSerial);
+                    if ($serialRecord) {
+                        $q->orWhere('serial_id', $serialRecord->id);
+                    }
+                })
+                ->where('trang_thai', '!=', 'da_tra_hang')
+                ->first();
+
+            if ($activeTicket) {
+                return response()->json([
+                    'status'  => false,
+                    'message' => 'Thiết bị có Serial ' . $soSerial . ' đang có phiếu #' . $activeTicket->ma_phieu . ' chưa hoàn tất xử lý. Vui lòng theo dõi tiến độ phiếu này!'
+                ], 409);
+            }
+        }
+
+        $ticket = PhieuBaoHanh::create([
+            'ma_phieu'        => 'WAR-' . rand(1000, 9999),
+            'serial_id'       => $serialRecord ? $serialRecord->id : null,
+            'so_serial'       => $soSerial,
+            'ten_khach_hang'  => trim($request->ten_khach_hang),
+            'so_dien_thoai'   => trim($request->so_dien_thoai),
+            'ten_thiet_bi'    => trim($request->ten_thiet_bi),
+            'loai_yeu_cau'    => $request->loai_yeu_cau,
+            'mo_ta_loi'       => trim($request->mo_ta_loi),
+            'trang_thai'      => 'tiep_nhan',
+            'ky_thuat_vien'   => 'Chờ phân công KTV',
+            'han_tra'         => now()->addDays(5)->format('Y-m-d'),
+            'chi_phi_du_kien' => 0,
+            'ghi_chu'         => $request->filled('ghi_chu') ? trim($request->ghi_chu) : 'Khách hàng gửi yêu cầu trực tuyến',
+        ]);
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Gửi yêu cầu ' . ($request->loai_yeu_cau === 'doi_tra' ? 'đổi trả' : 'bảo hành') . ' thành công! Mã phiếu: #' . $ticket->ma_phieu,
+            'data'    => $ticket,
+        ], 201);
+    }
+
+    /**
+     * Khách hàng tra cứu lịch sử & tiến độ các phiếu Bảo hành / Đổi trả đã gửi
+     */
+    public function lichSuYeuCauClient(Request $request)
+    {
+        $keyword = trim((string) $request->get('keyword', ''));
+        $sdt     = trim((string) $request->get('so_dien_thoai', ''));
+
+        if (!$keyword && !$sdt) {
+            return response()->json([
+                'status'  => false,
+                'message' => 'Vui lòng nhập Số điện thoại, Mã phiếu (WAR-...) hoặc Số Serial để tra cứu',
+                'data'    => []
+            ], 400);
+        }
+
+        $query = PhieuBaoHanh::query();
+
+        if ($keyword) {
+            $cleanCode = ltrim($keyword, '#');
+            $query->where(function ($q) use ($cleanCode) {
+                $q->where('ma_phieu', 'like', '%' . $cleanCode . '%')
+                  ->orWhere('so_serial', 'like', '%' . $cleanCode . '%')
+                  ->orWhere('so_dien_thoai', 'like', '%' . $cleanCode . '%');
+            });
+        } elseif ($sdt) {
+            $query->where('so_dien_thoai', $sdt);
+        }
+
+        $tickets = $query->orderBy('id', 'desc')->get();
+
+        return response()->json([
+            'status'  => true,
+            'message' => 'Lấy danh sách phiếu bảo hành thành công',
+            'data'    => $tickets,
         ]);
     }
 
