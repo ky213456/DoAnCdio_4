@@ -5,7 +5,7 @@
       <div>
         <div class="text-primary fw-bold small mb-1">TRUNG TÂM ĐIỀU PHỐI ĐƠN HÀNG & VẬN CHUYỂN</div>
         <h2 class="fw-bold text-dark mb-1">Quản lý Đơn hàng</h2>
-        <p class="text-muted small mb-0">Theo dõi trạng thái đơn, kiểm tra thanh toán PayOS/VNPAY và gán Serial/IMEI xuất kho.</p>
+        <p class="text-muted small mb-0">Theo dõi trạng thái đơn, kiểm tra thanh toán PayOS & COD và gán Serial/IMEI xuất kho.</p>
       </div>
     </div>
 

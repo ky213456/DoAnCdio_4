@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Models\DonHang;
 use App\Models\ThanhToan;
 use App\Services\PayOsService;
-use App\Services\VnPayService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -13,12 +12,10 @@ use Illuminate\Support\Facades\Log;
 class ThanhToanController extends Controller
 {
     protected PayOsService $payOsService;
-    protected VnPayService $vnPayService;
 
-    public function __construct(PayOsService $payOsService, VnPayService $vnPayService)
+    public function __construct(PayOsService $payOsService)
     {
         $this->payOsService = $payOsService;
-        $this->vnPayService = $vnPayService;
     }
 
     /**
@@ -263,153 +260,5 @@ class ThanhToanController extends Controller
         }
 
         return $this->verifyPayOs($orderCode);
-    }
-
-    /**
-     * GET /api/payment/vnpay/verify
-     * Xác thực chữ ký HMAC-SHA512 & cập nhật trạng thái đơn hàng khi VNPAY redirect về Return URL
-     */
-    public function verifyVnPay(Request $request)
-    {
-        $queryParams = $request->query();
-        $vnpTxnRef   = (string) ($queryParams['vnp_TxnRef'] ?? '');
-
-        if ($vnpTxnRef === '') {
-            return response()->json([
-                'status'  => false,
-                'message' => 'Thiếu tham số mã giao dịch vnp_TxnRef từ VNPAY.',
-            ], 400);
-        }
-
-        if (!$this->vnPayService->verifySignature($queryParams)) {
-            return response()->json([
-                'status'  => false,
-                'message' => 'Chữ ký bảo mật VNPAY (vnp_SecureHash) không hợp lệ! Giao dịch bị từ chối để chống giả mạo.',
-            ], 400);
-        }
-
-        $payment = ThanhToan::where('ma_giao_dich', $vnpTxnRef)->first();
-        if (!$payment) {
-            return response()->json([
-                'status'  => false,
-                'message' => 'Không tìm thấy giao dịch #' . $vnpTxnRef . ' trong CSDL TechMart.',
-            ], 404);
-        }
-
-        $order          = DonHang::find($payment->don_hang_id);
-        $responseCode   = (string) ($queryParams['vnp_ResponseCode'] ?? '99');
-        $txStatus       = (string) ($queryParams['vnp_TransactionStatus'] ?? $responseCode);
-        $isSuccess      = $responseCode === '00' && $txStatus === '00';
-        $vnpMsg         = $this->vnPayService->getResponseMessage($responseCode);
-
-        DB::transaction(function () use ($payment, $order, $queryParams, $responseCode, $isSuccess) {
-            $existingMeta = is_array($payment->du_lieu_phan_hoi) ? $payment->du_lieu_phan_hoi : [];
-            $mergedMeta   = array_merge($existingMeta, $queryParams);
-
-            if ($isSuccess) {
-                $payment->trang_thai           = 'success';
-                $payment->ma_phan_hoi_cong     = '00';
-                $payment->du_lieu_phan_hoi     = $mergedMeta;
-                $payment->thoi_gian_thanh_toan = $payment->thoi_gian_thanh_toan ?? now();
-                $payment->save();
-
-                if ($order && $order->trang_thai_thanh_toan !== 'da_thanh_toan') {
-                    $order->trang_thai_thanh_toan = 'da_thanh_toan';
-                    if ($order->trang_thai_don_hang === 'cho_xac_nhan') {
-                        $order->trang_thai_don_hang = 'da_xac_nhan';
-                    }
-                    $order->save();
-                }
-            } else {
-                $payment->trang_thai       = 'failed';
-                $payment->ma_phan_hoi_cong = $responseCode;
-                $payment->du_lieu_phan_hoi = $mergedMeta;
-                $payment->save();
-
-                if ($order && $order->trang_thai_thanh_toan === 'chua_thanh_toan') {
-                    $order->trang_thai_thanh_toan = 'that_bai';
-                    $order->save();
-                }
-            }
-        });
-
-        $payment->refresh();
-        if ($order) {
-            $order->refresh();
-        }
-
-        return response()->json([
-            'status'        => true,
-            'is_paid'       => $isSuccess,
-            'response_code' => $responseCode,
-            'message'       => $vnpMsg,
-            'data'          => [
-                'txn_ref'        => $vnpTxnRef,
-                'transaction_no' => $queryParams['vnp_TransactionNo'] ?? null,
-                'bank_code'      => $queryParams['vnp_BankCode'] ?? null,
-                'card_type'      => $queryParams['vnp_CardType'] ?? null,
-                'amount'         => isset($queryParams['vnp_Amount']) ? ((float) $queryParams['vnp_Amount'] / 100) : (float) $payment->so_tien,
-                'payment'        => $payment,
-                'order'          => $order,
-            ],
-        ]);
-    }
-
-    /**
-     * GET /api/payment/vnpay/ipn
-     * Endpoint Webhook IPN chuẩn VNPAY (trả về RspCode & Message theo tài liệu VNPAY)
-     */
-    public function vnpayIpn(Request $request)
-    {
-        $queryParams = $request->query();
-        $vnpTxnRef   = (string) ($queryParams['vnp_TxnRef'] ?? '');
-
-        if (!$this->vnPayService->verifySignature($queryParams)) {
-            return response()->json(['RspCode' => '97', 'Message' => 'Invalid signature']);
-        }
-
-        $payment = ThanhToan::where('ma_giao_dich', $vnpTxnRef)->first();
-        if (!$payment) {
-            return response()->json(['RspCode' => '01', 'Message' => 'Order not found']);
-        }
-
-        $vnpAmount = isset($queryParams['vnp_Amount']) ? ((float) $queryParams['vnp_Amount'] / 100) : 0;
-        if (abs($vnpAmount - (float) $payment->so_tien) > 1) {
-            return response()->json(['RspCode' => '04', 'Message' => 'Invalid amount']);
-        }
-
-        if ($payment->trang_thai === 'success') {
-            return response()->json(['RspCode' => '02', 'Message' => 'Order already confirmed']);
-        }
-
-        $responseCode = (string) ($queryParams['vnp_ResponseCode'] ?? '99');
-        $isSuccess    = $responseCode === '00';
-        $order        = DonHang::find($payment->don_hang_id);
-
-        DB::transaction(function () use ($payment, $order, $queryParams, $responseCode, $isSuccess) {
-            $existingMeta = is_array($payment->du_lieu_phan_hoi) ? $payment->du_lieu_phan_hoi : [];
-            $payment->du_lieu_phan_hoi = array_merge($existingMeta, ['ipn' => $queryParams]);
-
-            if ($isSuccess) {
-                $payment->trang_thai           = 'success';
-                $payment->ma_phan_hoi_cong     = '00';
-                $payment->thoi_gian_thanh_toan = now();
-                $payment->save();
-
-                if ($order) {
-                    $order->trang_thai_thanh_toan = 'da_thanh_toan';
-                    if ($order->trang_thai_don_hang === 'cho_xac_nhan') {
-                        $order->trang_thai_don_hang = 'da_xac_nhan';
-                    }
-                    $order->save();
-                }
-            } else {
-                $payment->trang_thai       = 'failed';
-                $payment->ma_phan_hoi_cong = $responseCode;
-                $payment->save();
-            }
-        });
-
-        return response()->json(['RspCode' => '00', 'Message' => 'Confirm Success']);
     }
 }

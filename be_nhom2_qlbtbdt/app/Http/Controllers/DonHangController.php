@@ -10,7 +10,6 @@ use App\Models\MaGiamGia;
 use App\Models\SerialSanPham;
 use App\Models\ThanhToan;
 use App\Services\PayOsService;
-use App\Services\VnPayService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -86,9 +85,9 @@ class DonHangController extends Controller
     }
 
     // ==========================================
-    // 2. CLIENT - ĐẶT HÀNG & THANH TOÁN (VNPAY / PAYOS / COD)
+    // 2. CLIENT - ĐẶT HÀNG & THANH TOÁN (PAYOS / COD)
     // ==========================================
-    public function checkout(Request $request, PayOsService $payOsService, VnPayService $vnPayService)
+    public function checkout(Request $request, PayOsService $payOsService)
     {
         $hoTen    = trim((string) $request->input('ho_ten_nguoi_nhan'));
         $sdt      = trim((string) $request->input('so_dien_thoai_nhan'));
@@ -107,7 +106,7 @@ class DonHangController extends Controller
             ], 422);
         }
 
-        if (!in_array($phuongThuc, ['cod', 'payos', 'vnpay'], true)) {
+        if (!in_array($phuongThuc, ['cod', 'payos'], true)) {
             $phuongThuc = 'payos';
         }
 
@@ -335,55 +334,6 @@ class DonHangController extends Controller
                     'checkout_url'   => $linkData['checkoutUrl'],
                     'qr_code'        => $linkData['qrCode'] ?? null,
                     'charge_amount'  => $chargeAmount,
-                    'don_hang'       => $donHang,
-                ]);
-            }
-
-            // Nếu thanh toán qua VNPAY Sandbox -> Tạo URL thanh toán chuẩn HMAC-SHA512
-            if ($phuongThuc === 'vnpay') {
-                $txnRef    = 'VNPAY_' . time() . '_' . $donHang->id;
-                $vnpAmount = (int) round($tongThanhToan);
-
-                $vnpRes = $vnPayService->createPaymentUrl([
-                    'txnRef'    => $txnRef,
-                    'amount'    => $vnpAmount,
-                    'orderInfo' => 'Thanh toan don hang ' . $maDonHang,
-                    'ipAddr'    => $request->ip() ?: '127.0.0.1',
-                ]);
-
-                if (!$vnpRes['success']) {
-                    DB::rollBack();
-
-                    return response()->json([
-                        'status'  => false,
-                        'message' => $vnpRes['message'] ?? 'Không thể khởi tạo liên kết thanh toán VNPAY.',
-                    ], 422);
-                }
-
-                ThanhToan::create([
-                    'don_hang_id'      => $donHang->id,
-                    'ma_giao_dich'     => $txnRef,
-                    'cong_thanh_toan'  => 'vnpay',
-                    'so_tien'          => $vnpAmount,
-                    'loai_tien'        => 'VND',
-                    'trang_thai'       => 'pending',
-                    'ma_phan_hoi_cong' => 'PENDING',
-                    'du_lieu_phan_hoi' => [
-                        'vnp_TxnRef' => $txnRef,
-                        'vnp_Amount' => $vnpAmount * 100,
-                    ],
-                ]);
-
-                $this->clearPurchasedCart($cartIdsToRemove, $validUserId, $sessionId);
-
-                DB::commit();
-
-                return response()->json([
-                    'status'         => true,
-                    'payment_method' => 'vnpay',
-                    'message'        => 'Khởi tạo đơn hàng & cổng thanh toán VNPAY Sandbox thành công!',
-                    'txn_ref'        => $txnRef,
-                    'payment_url'    => $vnpRes['payment_url'],
                     'don_hang'       => $donHang,
                 ]);
             }

@@ -338,10 +338,6 @@
                 <div class="pay-badge pay-vietqr">
                   <i class="bi bi-qr-code-scan me-1 text-primary"></i> VietQR / PayOS
                 </div>
-                <div class="pay-badge pay-vnpay">
-                  <i class="bi bi-wallet2 me-1 text-danger"></i> Cổng VNPAY QR
-                </div>
-              
                 <div class="pay-badge pay-cod">
                   <i class="bi bi-cash-stack me-1 text-success"></i> COD Tiền mặt
                 </div>
@@ -495,23 +491,6 @@
 
               <label
                 class="p-2 rounded border d-flex align-items-center justify-content-between cursor-pointer"
-                :class="checkoutForm.phuong_thuc_thanh_toan === 'vnpay' ? 'border-danger bg-danger-subtle' : 'bg-light'"
-              >
-                <div class="d-flex align-items-center gap-2">
-                  <input type="radio" value="vnpay" v-model="checkoutForm.phuong_thuc_thanh_toan" />
-                  <div>
-                    <div class="fw-bold small text-dark">
-                      <i class="bi bi-wallet2 text-danger me-1"></i>
-                      Thanh toán qua Cổng VNPAY Sandbox (ATM / QR / Visa)
-                    </div>
-                    <div class="text-muted" style="font-size: 11px;">Thẻ test NCB: 9704198526191432198 • NGUYEN VAN A • 07/15 • OTP 123456 (Tối thiểu 5.000đ)</div>
-                  </div>
-                </div>
-                <span class="badge bg-danger">VNPAY 2.1</span>
-              </label>
-
-              <label
-                class="p-2 rounded border d-flex align-items-center justify-content-between cursor-pointer"
                 :class="checkoutForm.phuong_thuc_thanh_toan === 'cod' ? 'border-success bg-success-subtle' : 'bg-light'"
               >
                 <div class="d-flex align-items-center gap-2">
@@ -546,7 +525,7 @@
                   ? 'Đang kết nối cổng thanh toán...'
                   : (checkoutForm.phuong_thuc_thanh_toan === 'payos'
                     ? 'Thanh Toán PayOS Ngay'
-                    : (checkoutForm.phuong_thuc_thanh_toan === 'vnpay' ? 'Thanh Toán VNPAY Ngay' : 'Xác Nhận Đặt Hàng COD'))
+                    : 'Xác Nhận Đặt Hàng COD')
               }}
             </button>
           </div>
@@ -925,11 +904,6 @@ export default {
 
           if (res.data.payment_method === 'payos' && res.data.checkout_url) {
             window.location.href = res.data.checkout_url;
-            return;
-          }
-
-          if (res.data.payment_method === 'vnpay' && res.data.payment_url) {
-            window.location.href = res.data.payment_url;
             return;
           }
 
