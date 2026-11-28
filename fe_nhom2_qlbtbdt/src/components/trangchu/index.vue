@@ -10,20 +10,29 @@
       <div class="main-width topbar-inner">
         <div class="topbar-left">
           <span class="hotline-badge">
-            <i class="bi bi-telephone-fill me-1 text-warning"></i> Hotline Kỹ thuật: <strong>1900.6789</strong>
+            <i class="bi bi-telephone-fill me-1 text-warning"></i> {{ t('hotline') }} <strong>1900.6789</strong>
           </span>
           <span class="divider">|</span>
           <span>
-            <i class="bi bi-geo-alt-fill me-1 text-danger"></i> Showroom: Đà Nẵng & Toàn quốc
+            <i class="bi bi-geo-alt-fill me-1 text-danger"></i> {{ t('showroom') }}
           </span>
         </div>
         <div class="topbar-right">
           <router-link to="/warranty" class="topbar-link">
-            <i class="bi bi-shield-check me-1 text-info"></i> Tra cứu bảo hành điện tử (Serial/IMEI)
+            <i class="bi bi-shield-check me-1 text-info"></i> {{ t('warrantyLookup') }}
           </router-link>
           <span class="divider">|</span>
-          <span class="lang-selector">
-            <i class="bi bi-globe me-1"></i> Tiếng Việt
+          <span class="lang-selector d-inline-flex align-items-center gap-1">
+            <i class="bi bi-globe"></i>
+            <select
+              :value="langCode"
+              @change="onChangeLang($event.target.value)"
+              style="background: transparent; color: inherit; border: none; outline: none; font-size: inherit; cursor: pointer;"
+              aria-label="Chọn ngôn ngữ"
+            >
+              <option value="vi" style="color: #0f172a; background: #ffffff;">Tiếng Việt</option>
+              <option value="en" style="color: #0f172a; background: #ffffff;">English</option>
+            </select>
           </span>
           <span class="divider">|</span>
           <router-link to="/admin" class="topbar-link text-warning fw-bold">
@@ -44,7 +53,7 @@
             <div class="logo-icon"><i class="bi bi-lightning-charge-fill"></i></div>
             <div class="logo-text">
               <span class="brand-name">TECHMART</span>
-              <span class="brand-sub">Hệ Thống Bán Thiết Bị Điện Tử Số</span>
+              <span class="brand-sub">{{ t('brandSub') }}</span>
             </div>
           </router-link>
         </div>
@@ -57,15 +66,15 @@
               v-model="searchQuery"
               @focus="showSuggestions = true"
               @blur="setTimeout(() => showSuggestions = false, 200)"
-              placeholder="Tìm kiếm laptop gaming, macbook, card rtx 4060, cpu intel..."
+              :placeholder="t('searchPlaceholder')"
             />
             <button class="btn-search">
-              <i class="bi bi-search me-1"></i> Tìm kiếm
+              <i class="bi bi-search me-1"></i> {{ t('searchBtn') }}
             </button>
           </div>
           <!-- Auto-suggest Popup -->
           <div v-if="showSuggestions" class="search-suggestions">
-            <div class="suggest-header"><i class="bi bi-fire me-1 text-danger"></i>Từ khóa tìm kiếm thịnh hành:</div>
+            <div class="suggest-header"><i class="bi bi-fire me-1 text-danger"></i>{{ t('trendingSearch') }}</div>
             <div
               v-for="(item, idx) in searchSuggestions"
               :key="idx"
@@ -83,8 +92,8 @@
           <button class="btn-action-ai" @click="isAiChatOpen = true">
             <i class="bi bi-robot action-icon text-warning"></i>
             <div class="action-text">
-              <span class="action-title">AI TƯ VẤN</span>
-              <span class="action-sub">Hỏi cấu hình máy</span>
+              <span class="action-title">{{ t('aiTitle') }}</span>
+              <span class="action-sub">{{ t('aiSub') }}</span>
             </div>
           </button>
 
@@ -94,7 +103,7 @@
               <i class="bi bi-arrow-left-right action-icon text-primary"></i>
               <span class="cart-badge bg-info text-dark" v-if="compareList.length > 0">{{ compareList.length }}</span>
             </div>
-            <span class="action-title d-none d-xxl-inline ms-2">So sánh</span>
+            <span class="action-title d-none d-xxl-inline ms-2">{{ t('compare') }}</span>
           </router-link>
 
           <!-- Nút Yêu thích (UC05) -->
@@ -103,7 +112,7 @@
               <i class="bi bi-heart-fill action-icon text-danger"></i>
               <span class="cart-badge bg-danger" v-if="wishlist.length > 0">{{ wishlist.length }}</span>
             </div>
-            <span class="action-title d-none d-xxl-inline ms-2">Yêu thích</span>
+            <span class="action-title d-none d-xxl-inline ms-2">{{ t('wishlist') }}</span>
           </router-link>
 
           <!-- ❺ Nút Giỏ hàng -->
@@ -112,7 +121,7 @@
               <i class="bi bi-cart3 action-icon"></i>
               <span class="cart-badge" :class="{ 'badge-bounce': isCartBouncing }">{{ cartTotalCount }}</span>
             </div>
-            <span class="action-title d-none d-md-inline ms-2">Giỏ hàng</span>
+            <span class="action-title d-none d-md-inline ms-2">{{ t('cart') }}</span>
           </router-link>
 
           <!-- ❻ Menu Người dùng / Đăng nhập / Đăng ký -->
@@ -143,10 +152,10 @@
           <!-- Khi chưa đăng nhập: Nút Đăng nhập / Đăng ký -->
           <div class="guest-auth-actions" v-else>
             <button class="btn-header-login" @click="openAuthModal('login')">
-              <i class="bi bi-box-arrow-in-right me-1"></i> Đăng nhập
+              <i class="bi bi-box-arrow-in-right me-1"></i> {{ t('login') }}
             </button>
             <router-link to="/register" class="btn-header-register">
-              <i class="bi bi-person-plus me-1"></i> Đăng ký
+              <i class="bi bi-person-plus me-1"></i> {{ t('register') }}
             </router-link>
           </div>
         </div>
@@ -160,7 +169,7 @@
       <div class="main-width navbar-inner">
         <router-link to="/catalog" class="nav-catalog-btn text-decoration-none">
           <i class="bi bi-grid-3x3-gap-fill menu-bars"></i>
-          <span class="catalog-text">TẤT CẢ DANH MỤC</span>
+          <span class="catalog-text">{{ t('allCategories') }}</span>
         </router-link>
         <ul class="nav-links">
           <li class="nav-item">
@@ -170,22 +179,17 @@
           </li>
           <li class="nav-item">
             <router-link to="/catalog?category=pc-may-tram" class="nav-link">
-              <i class="bi bi-pc-display me-1"></i> PC & MÁY TRẠM
-            </router-link>
-          </li>
-          <li class="nav-item">
-            <router-link to="/catalog?category=smartphone" class="nav-link">
-              <i class="bi bi-phone me-1"></i> SMARTPHONE
+              <i class="bi bi-pc-display me-1"></i> {{ t('pcWorkstation') }}
             </router-link>
           </li>
           <li class="nav-item">
             <router-link to="/catalog?category=linh-kien-pc" class="nav-link">
-              <i class="bi bi-cpu me-1"></i> LINH KIỆN PC
+              <i class="bi bi-cpu me-1"></i> {{ t('pcParts') }}
             </router-link>
           </li>
           <li class="nav-item">
             <router-link to="/catalog?category=gaming-gear" class="nav-link">
-              <i class="bi bi-controller me-1"></i> PHỤ KIỆN
+              <i class="bi bi-controller me-1"></i> {{ t('accessories') }}
             </router-link>
           </li>
           <li class="nav-item">
@@ -195,7 +199,7 @@
           </li>
           <li class="nav-item">
             <router-link to="/catalog?filter=promo" class="nav-link promo-link">
-              <i class="bi bi-gift-fill text-danger me-1"></i> KHUYẾN MÃI
+              <i class="bi bi-gift-fill text-danger me-1"></i> {{ t('promotions') }}
             </router-link>
           </li>
         </ul>
@@ -270,31 +274,31 @@
           >
             <div class="sub-banner-overlay"></div>
             <div class="sub-banner-content">
-              <div class="sub-badge"><i class="bi bi-tools me-1 text-primary"></i> DỊCH VỤ CHUYÊN NGHIỆP</div>
-              <h3 class="sub-title">BUILD PC GAMING THEO YÊU CẦU</h3>
+              <div class="sub-badge"><i class="bi bi-tools me-1 text-primary"></i> {{ t('subPcBadge') }}</div>
+              <h3 class="sub-title">{{ t('subPcTitle') }}</h3>
               <p class="sub-desc">
-                Giảm ngay 2.000.000đ khi ráp kèm Card RTX.<br />
-                Trợ lý AI tự động kiểm tra tương thích linh kiện.
+                {{ t('subPcDesc1') }}<br />
+                {{ t('subPcDesc2') }}
               </p>
-              <a href="javascript:void(0)" class="sub-link" @click.stop="openAiBuildPc">Xem chi tiết <i class="bi bi-arrow-right ms-1"></i></a>
+              <a href="javascript:void(0)" class="sub-link" @click.stop="openAiBuildPc">{{ t('viewDetails') }} <i class="bi bi-arrow-right ms-1"></i></a>
             </div>
           </div>
 
-          <!-- Sub-banner 2: Smartphone Flagship -->
+          <!-- Sub-banner 2: Màn hình Gaming & Đồ họa -->
           <div
             class="sub-banner-card sub-card-mobile"
-            style="background-image: url('https://images.unsplash.com/photo-1592750475338-74b7b21085ab?auto=format&fit=crop&w=600&q=80'); cursor: pointer;"
-            @click="$router.push('/catalog')"
+            style="background-image: url('https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?auto=format&fit=crop&w=600&q=80'); cursor: pointer;"
+            @click="$router.push('/catalog?category=man-hinh')"
           >
             <div class="sub-banner-overlay"></div>
             <div class="sub-banner-content">
-              <div class="sub-badge"><i class="bi bi-stars me-1 text-warning"></i> FLAGSHIP MỚI NHẤT</div>
-              <h3 class="sub-title">IPHONE 16 PRO MAX & S24 ULTRA</h3>
+              <div class="sub-badge"><i class="bi bi-display me-1 text-warning"></i> {{ t('subMonBadge') }}</div>
+              <h3 class="sub-title">{{ t('subMonTitle') }}</h3>
               <p class="sub-desc">
-                Thu cũ đổi mới trợ giá lên tới 3.000.000đ.<br />
-                Bảo hành điện tử 1 đổi 1 trong 30 ngày.
+                {{ t('subMonDesc1') }}<br />
+                {{ t('subMonDesc2') }}
               </p>
-              <router-link to="/catalog" class="sub-link" @click.stop>Khám phá ngay <i class="bi bi-arrow-right ms-1"></i></router-link>
+              <router-link to="/catalog?category=man-hinh" class="sub-link" @click.stop>{{ t('exploreNow') }} <i class="bi bi-arrow-right ms-1"></i></router-link>
             </div>
           </div>
         </div>
@@ -309,10 +313,10 @@
       <div class="flash-sale-header">
         <div class="flash-title-wrap">
           <i class="bi bi-lightning-charge-fill flash-bolt text-danger"></i>
-          <span class="flash-title">FLASH SALE GIÁ SỐC</span>
+          <span class="flash-title">{{ t('flashSaleTitle') }}</span>
         </div>
         <div class="flash-timer-wrap">
-          <span class="timer-label"><i class="bi bi-alarm me-1"></i> Kết thúc trong:</span>
+          <span class="timer-label"><i class="bi bi-alarm me-1"></i> {{ t('endsIn') }}</span>
           <div class="timer-boxes">
             <span class="timer-box">{{ String(hours).padStart(2, '0') }}</span>
             <span class="timer-colon">:</span>
@@ -344,7 +348,7 @@
             </div>
             <div class="progress-container">
               <div class="progress-bar" style="width: 80%;"></div>
-              <span class="progress-text"><i class="bi bi-lightning-fill me-1"></i>ĐANG BÁN CHẠY</span>
+              <span class="progress-text"><i class="bi bi-lightning-fill me-1"></i>{{ t('sellingFast') }}</span>
             </div>
           </div>
         </template>
@@ -442,39 +446,39 @@
     <!-- ⓬ CALLOUT 12: DANH MỤC THIẾT BỊ NỔI BẬT -->
     <!-- ========================================== -->
     <section class="categories-section main-width scroll-reveal">
-      <h2 class="section-title"><i class="bi bi-grid-fill me-2 text-primary"></i>DANH MỤC THIẾT BỊ NỔI BẬT</h2>
+      <h2 class="section-title"><i class="bi bi-grid-fill me-2 text-primary"></i>{{ t('featuredCategories') }}</h2>
       <div class="categories-grid">
         <div class="category-item cursor-pointer" @click="$router.push('/catalog?category=laptop&q=gaming')">
           <div class="cat-icon-box cat-blue"><i class="bi bi-laptop"></i></div>
-          <span class="cat-name">Laptop Gaming</span>
+          <span class="cat-name">{{ t('catGamingLaptop') }}</span>
         </div>
         <div class="category-item cursor-pointer" @click="$router.push('/catalog?category=laptop')">
           <div class="cat-icon-box cat-slate"><i class="bi bi-briefcase-fill"></i></div>
-          <span class="cat-name">Laptop Văn Phòng</span>
+          <span class="cat-name">{{ t('catOfficeLaptop') }}</span>
         </div>
         <div class="category-item cursor-pointer" @click="$router.push('/catalog?category=laptop&q=macbook')">
           <div class="cat-icon-box cat-dark"><i class="bi bi-apple"></i></div>
-          <span class="cat-name">Macbook - Apple</span>
+          <span class="cat-name">{{ t('catMacbook') }}</span>
         </div>
         <div class="category-item cursor-pointer" @click="$router.push('/catalog?category=pc-may-tram')">
           <div class="cat-icon-box cat-cyan"><i class="bi bi-pc-display"></i></div>
-          <span class="cat-name">PC Ráp Sẵn</span>
+          <span class="cat-name">{{ t('catPrebuiltPc') }}</span>
         </div>
         <div class="category-item cursor-pointer" @click="$router.push('/catalog?category=linh-kien-pc&q=vga')">
           <div class="cat-icon-box cat-rose"><i class="bi bi-gpu-card"></i></div>
-          <span class="cat-name">Card VGA</span>
+          <span class="cat-name">{{ t('catVga') }}</span>
         </div>
         <div class="category-item cursor-pointer" @click="$router.push('/catalog?category=linh-kien-pc&q=cpu')">
           <div class="cat-icon-box cat-amber"><i class="bi bi-cpu-fill"></i></div>
-          <span class="cat-name">CPU Vi Xử Lý</span>
+          <span class="cat-name">{{ t('catCpu') }}</span>
         </div>
         <div class="category-item cursor-pointer" @click="$router.push('/catalog?category=pc-may-tram&q=màn hình')">
           <div class="cat-icon-box cat-emerald"><i class="bi bi-display"></i></div>
-          <span class="cat-name">Màn Hình 2K/4K</span>
+          <span class="cat-name">{{ t('catMonitor') }}</span>
         </div>
         <div class="category-item cursor-pointer" @click="$router.push('/catalog?category=gaming-gear')">
           <div class="cat-icon-box cat-indigo"><i class="bi bi-headset"></i></div>
-          <span class="cat-name">Phụ Kiện Gaming</span>
+          <span class="cat-name">{{ t('catGear') }}</span>
         </div>
       </div>
     </section>
@@ -487,8 +491,8 @@
       <div class="showcase-header text-center">
         <div class="title-with-badge">
           <span class="fire-badge"><i class="bi bi-fire"></i></span>
-          <span class="text-white-bold">SẢN PHẨM</span>
-          <span class="text-outline-glow">NỔI BẬT</span>
+          <span class="text-white-bold">{{ t('featuredWord1') }}</span>
+          <span class="text-outline-glow">{{ t('featuredWord2') }}</span>
         </div>
       </div>
 
@@ -593,18 +597,18 @@
       <div class="section-header-flex">
         <div>
           <h2 class="section-title mb-1">
-            <i class="bi bi-collection-fill me-2 text-primary"></i>TẤT CẢ SẢN PHẨM CÔNG NGHỆ
-            <span class="badge bg-primary ms-2 fs-6 rounded-pill px-3">{{ list_all_san_pham.length }} sản phẩm</span>
+            <i class="bi bi-collection-fill me-2 text-primary"></i>{{ t('allProductsTitle') }}
+            <span class="badge bg-primary ms-2 fs-6 rounded-pill px-3">{{ list_all_san_pham.length }} {{ t('productsUnit') }}</span>
           </h2>
-          <p class="section-subtitle">Toàn bộ thiết bị chính hãng tại TechMart: Laptop, Màn hình, VGA, CPU, RAM, SSD và Gaming Gear</p>
+          <p class="section-subtitle">{{ t('allProductsSub') }}</p>
         </div>
         <div class="header-action-wrap">
           <button class="btn-toggle-view-all-top" @click="isExpandedAll = !isExpandedAll">
             <template v-if="!isExpandedAll">
-              <i class="bi bi-arrows-expand me-1"></i> Xem tất cả ({{ list_all_san_pham.length }})
+              <i class="bi bi-arrows-expand me-1"></i> {{ t('viewAll') }} ({{ list_all_san_pham.length }})
             </template>
             <template v-else>
-              <i class="bi bi-arrows-collapse me-1"></i> Thu gọn (còn 8)
+              <i class="bi bi-arrows-collapse me-1"></i> {{ t('collapseEight') }}
             </template>
           </button>
         </div>
@@ -800,7 +804,7 @@
     <section class="brand-and-commitments main-width scroll-reveal">
       <!-- Thương hiệu chính hãng -->
       <div class="brands-wrapper">
-        <h3 class="brands-title"><i class="bi bi-patch-check-fill me-2 text-primary"></i>THƯƠNG HIỆU CÔNG NGHỆ CHÍNH HÃNG</h3>
+        <h3 class="brands-title"><i class="bi bi-patch-check-fill me-2 text-primary"></i>{{ t('officialBrands') }}</h3>
         <div class="brands-grid">
           <div class="brand-box">APPLE</div>
           <div class="brand-box">ASUS ROG</div>
@@ -818,29 +822,29 @@
         <div class="commit-item">
           <div class="commit-icon-wrap text-success"><i class="bi bi-shield-fill-check"></i></div>
           <div class="commit-content">
-            <h4 class="commit-name">100% Chính Hãng</h4>
-            <p class="commit-desc">Cam kết hàng nguyên seal, đền 200% nếu phát hiện giả</p>
+            <h4 class="commit-name">{{ t('commit1Title') }}</h4>
+            <p class="commit-desc">{{ t('commit1Desc') }}</p>
           </div>
         </div>
         <div class="commit-item">
           <div class="commit-icon-wrap text-warning"><i class="bi bi-lightning-charge-fill"></i></div>
           <div class="commit-content">
-            <h4 class="commit-name">Giao Siêu Tốc 2H</h4>
-            <p class="commit-desc">Giao hàng hỏa tốc nội thành có bảo hiểm giá trị cao</p>
+            <h4 class="commit-name">{{ t('commit2Title') }}</h4>
+            <p class="commit-desc">{{ t('commit2Desc') }}</p>
           </div>
         </div>
         <div class="commit-item">
           <div class="commit-icon-wrap text-info"><i class="bi bi-upc-scan"></i></div>
           <div class="commit-content">
-            <h4 class="commit-name">Bảo Hành Serial/IMEI</h4>
-            <p class="commit-desc">Tra cứu thời hạn bảo hành điện tử chính xác theo thân máy</p>
+            <h4 class="commit-name">{{ t('commit3Title') }}</h4>
+            <p class="commit-desc">{{ t('commit3Desc') }}</p>
           </div>
         </div>
         <div class="commit-item">
           <div class="commit-icon-wrap text-primary"><i class="bi bi-robot"></i></div>
           <div class="commit-content">
-            <h4 class="commit-name">Trợ Lý AI 24/7</h4>
-            <p class="commit-desc">Tư vấn cấu hình chuẩn xác mọi lúc mọi nơi theo ngân sách</p>
+            <h4 class="commit-name">{{ t('commit4Title') }}</h4>
+            <p class="commit-desc">{{ t('commit4Desc') }}</p>
           </div>
         </div>
       </div>
@@ -853,10 +857,10 @@
       <div class="main-width footer-grid">
         <!-- Cột 1: Thông tin công ty -->
         <div class="footer-col">
-          <h5 class="footer-heading">TECHMART AI - HỆ THỐNG THIẾT BỊ ĐIỆN TỬ SỐ</h5>
+          <h5 class="footer-heading">{{ t('footerHeading') }}</h5>
           <p class="footer-text">
-            Chuyên kinh doanh laptop, smartphone, máy tính để bàn và linh kiện PC.<br />
-            Tích hợp Trợ lý Trí tuệ Nhân tạo tư vấn cấu hình theo nhu cầu.
+            {{ t('footerDesc1') }}<br />
+            {{ t('footerDesc2') }}
           </p>
           <div class="footer-contact-item">
             <i class="bi bi-geo-alt-fill me-2 text-danger"></i> Showroom: Hòa Khánh Bắc, Liên Chiểu, TP. Đà Nẵng
@@ -1569,6 +1573,7 @@
 import axios from 'axios'
 import apiUrl from '../../utils/api'
 import { isDark, toggleTheme } from '../../utils/theme'
+import { currentLang, setLang, t as translate } from '../../utils/i18n'
 
 export default {
   data() {
@@ -1613,7 +1618,7 @@ export default {
         },
         {
           badge: 'CHÍNH HÃNG APPLE VIỆT NAM - THU CŨ ĐỔI MỚI',
-          title: 'APPLE MACBOOK PRO M3 & IPHONE 16 PRO',
+          title: 'APPLE MACBOOK PRO M3 & AIR M2',
           subTitle: 'TRỢ GIÁ THU CŨ LÊN TỚI 3.000.000Đ',
           perks: [
             'Sức mạnh đột phá từ vi xử lý Apple Silicon M3 kiến trúc 3nm',
@@ -1733,6 +1738,9 @@ export default {
     }
   },
   computed: {
+    langCode() {
+      return currentLang.value;
+    },
     themeIsDark() {
       return isDark.value;
     },
@@ -1860,6 +1868,12 @@ export default {
     window.removeEventListener('scroll', this.handleScroll);
   },
   methods: {
+    t(key) {
+      return translate(key);
+    },
+    onChangeLang(lang) {
+      setLang(lang);
+    },
     handleHeroCta() {
       const idx = this.currentHeroIndex;
       if (idx === 0) {

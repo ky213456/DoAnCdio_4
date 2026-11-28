@@ -1,0 +1,156 @@
+import { ref } from 'vue'
+
+const STORAGE_KEY = 'techmart_lang'
+
+let initial = 'vi'
+try {
+  const saved = localStorage.getItem(STORAGE_KEY)
+  if (saved === 'en' || saved === 'vi') initial = saved
+} catch (e) {}
+
+export const currentLang = ref(initial)
+
+export function setLang(lang) {
+  const next = lang === 'en' ? 'en' : 'vi'
+  currentLang.value = next
+  document.documentElement.lang = next
+  try {
+    localStorage.setItem(STORAGE_KEY, next)
+  } catch (e) {}
+}
+
+const messages = {
+  vi: {
+    hotline: 'Hotline Kỹ thuật:',
+    showroom: 'Showroom: Đà Nẵng & Toàn quốc',
+    warrantyLookup: 'Tra cứu bảo hành điện tử (Serial/IMEI)',
+    brandSub: 'Hệ Thống Bán Thiết Bị Điện Tử Số',
+    searchPlaceholder: 'Tìm kiếm laptop gaming, macbook, card rtx 4060, cpu intel...',
+    searchBtn: 'Tìm kiếm',
+    trendingSearch: 'Từ khóa tìm kiếm thịnh hành:',
+    aiTitle: 'AI TƯ VẤN',
+    aiSub: 'Hỏi cấu hình máy',
+    compare: 'So sánh',
+    wishlist: 'Yêu thích',
+    cart: 'Giỏ hàng',
+    login: 'Đăng nhập',
+    register: 'Đăng ký',
+    allCategories: 'TẤT CẢ DANH MỤC',
+    pcWorkstation: 'PC & MÁY TRẠM',
+    pcParts: 'LINH KIỆN PC',
+    accessories: 'PHỤ KIỆN',
+    promotions: 'KHUYẾN MÃI',
+    subPcBadge: 'DỊCH VỤ CHUYÊN NGHIỆP',
+    subPcTitle: 'BUILD PC GAMING THEO YÊU CẦU',
+    subPcDesc1: 'Giảm ngay 2.000.000đ khi ráp kèm Card RTX.',
+    subPcDesc2: 'Trợ lý AI tự động kiểm tra tương thích linh kiện.',
+    viewDetails: 'Xem chi tiết',
+    subMonBadge: 'HIỂN THỊ CHUẨN MÀU',
+    subMonTitle: 'MÀN HÌNH GAMING OLED & 4K',
+    subMonDesc1: 'Tần số quét siêu mượt 240Hz – 99% DCI-P3.',
+    subMonDesc2: 'Bảo hành điện tử 1 đổi 1 trong 30 ngày.',
+    exploreNow: 'Khám phá ngay',
+    flashSaleTitle: 'FLASH SALE GIÁ SỐC',
+    endsIn: 'Kết thúc trong:',
+    sellingFast: 'ĐANG BÁN CHẠY',
+    featuredCategories: 'DANH MỤC THIẾT BỊ NỔI BẬT',
+    catGamingLaptop: 'Laptop Gaming',
+    catOfficeLaptop: 'Laptop Văn Phòng',
+    catMacbook: 'Macbook - Apple',
+    catPrebuiltPc: 'PC Ráp Sẵn',
+    catVga: 'Card VGA',
+    catCpu: 'CPU Vi Xử Lý',
+    catMonitor: 'Màn Hình 2K/4K',
+    catGear: 'Phụ Kiện Gaming',
+    featuredWord1: 'SẢN PHẨM',
+    featuredWord2: 'NỔI BẬT',
+    allProductsTitle: 'TẤT CẢ SẢN PHẨM CÔNG NGHỆ',
+    productsUnit: 'sản phẩm',
+    allProductsSub: 'Toàn bộ thiết bị chính hãng tại TechMart: Laptop, Màn hình, VGA, CPU, RAM, SSD và Gaming Gear',
+    viewAll: 'Xem tất cả',
+    collapseEight: 'Thu gọn (còn 8)',
+    viewAllMore: 'Xem tất cả sản phẩm',
+    collapseShort: 'Thu gọn bớt (chỉ hiển thị 8 sản phẩm)',
+    officialBrands: 'THƯƠNG HIỆU CÔNG NGHỆ CHÍNH HÃNG',
+    commit1Title: '100% Chính Hãng',
+    commit1Desc: 'Cam kết hàng nguyên seal, đền 200% nếu phát hiện giả',
+    commit2Title: 'Giao Siêu Tốc 2H',
+    commit2Desc: 'Giao hàng hỏa tốc nội thành có bảo hiểm giá trị cao',
+    commit3Title: 'Bảo Hành Serial/IMEI',
+    commit3Desc: 'Tra cứu thời hạn bảo hành điện tử chính xác theo thân máy',
+    commit4Title: 'Trợ Lý AI 24/7',
+    commit4Desc: 'Tư vấn cấu hình chuẩn xác mọi lúc mọi nơi theo ngân sách',
+    footerHeading: 'TECHMART AI - HỆ THỐNG THIẾT BỊ ĐIỆN TỬ SỐ',
+    footerDesc1: 'Chuyên kinh doanh laptop, màn hình, máy tính để bàn và linh kiện PC.',
+    footerDesc2: 'Tích hợp Trợ lý Trí tuệ Nhân tạo tư vấn cấu hình theo nhu cầu.',
+  },
+  en: {
+    hotline: 'Tech Hotline:',
+    showroom: 'Showroom: Da Nang & Nationwide',
+    warrantyLookup: 'Electronic Warranty Lookup (Serial/IMEI)',
+    brandSub: 'Digital Electronics Retail System',
+    searchPlaceholder: 'Search gaming laptop, macbook, rtx 4060, intel cpu...',
+    searchBtn: 'Search',
+    trendingSearch: 'Trending searches:',
+    aiTitle: 'AI ADVISOR',
+    aiSub: 'Ask PC & laptop specs',
+    compare: 'Compare',
+    wishlist: 'Wishlist',
+    cart: 'Cart',
+    login: 'Login',
+    register: 'Register',
+    allCategories: 'ALL CATEGORIES',
+    pcWorkstation: 'PC & WORKSTATION',
+    pcParts: 'PC COMPONENTS',
+    accessories: 'ACCESSORIES',
+    promotions: 'PROMOTIONS',
+    subPcBadge: 'PROFESSIONAL SERVICE',
+    subPcTitle: 'CUSTOM GAMING PC BUILD',
+    subPcDesc1: 'Instant 2,000,000₫ off when paired with RTX GPU.',
+    subPcDesc2: 'AI Assistant automatically checks part compatibility.',
+    viewDetails: 'View details',
+    subMonBadge: 'TRUE COLOR DISPLAY',
+    subMonTitle: 'OLED & 4K GAMING MONITORS',
+    subMonDesc1: 'Ultra-smooth 240Hz refresh rate – 99% DCI-P3.',
+    subMonDesc2: '1-to-1 electronic warranty replacement within 30 days.',
+    exploreNow: 'Explore now',
+    flashSaleTitle: 'FLASH SALE DEALS',
+    endsIn: 'Ends in:',
+    sellingFast: 'SELLING FAST',
+    featuredCategories: 'FEATURED CATEGORIES',
+    catGamingLaptop: 'Gaming Laptops',
+    catOfficeLaptop: 'Office Laptops',
+    catMacbook: 'MacBook - Apple',
+    catPrebuiltPc: 'Prebuilt PCs',
+    catVga: 'Graphics Cards',
+    catCpu: 'Processors (CPU)',
+    catMonitor: '2K/4K Monitors',
+    catGear: 'Gaming Gear',
+    featuredWord1: 'FEATURED',
+    featuredWord2: 'PRODUCTS',
+    allProductsTitle: 'ALL TECH PRODUCTS',
+    productsUnit: 'products',
+    allProductsSub: 'All genuine devices at TechMart: Laptops, Monitors, GPUs, CPUs, RAM, SSD & Gaming Gear',
+    viewAll: 'View all',
+    collapseEight: 'Collapse (8)',
+    viewAllMore: 'View all products',
+    collapseShort: 'Show less (8 products)',
+    officialBrands: 'OFFICIAL TECH BRANDS',
+    commit1Title: '100% Authentic',
+    commit1Desc: 'Sealed genuine products, 200% refund if counterfeit',
+    commit2Title: '2H Express Delivery',
+    commit2Desc: 'Fast inner-city delivery with full-value insurance',
+    commit3Title: 'Serial/IMEI Warranty',
+    commit3Desc: 'Check exact electronic warranty period by device serial',
+    commit4Title: '24/7 AI Assistant',
+    commit4Desc: 'Accurate spec recommendations anytime within your budget',
+    footerHeading: 'TECHMART AI - DIGITAL ELECTRONICS RETAIL',
+    footerDesc1: 'Specializing in laptops, monitors, desktops, and PC components.',
+    footerDesc2: 'Integrated AI Assistant for tailored hardware recommendations.',
+  },
+}
+
+export function t(key) {
+  const dict = messages[currentLang.value] || messages.vi
+  return dict[key] || messages.vi[key] || key
+}
