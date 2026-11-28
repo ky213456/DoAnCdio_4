@@ -50,38 +50,78 @@ class AiService
         ];
 
         // 4. Gọi Google Gemini API với temperature thấp (0.15) để chống ảo giác (Hallucination)
-        $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key={$apiKey}";
-
-        $generationConfig = [
-            'temperature'     => 0.15,
-            'topP'            => 0.85,
-            'maxOutputTokens' => 2048,
-        ];
-
-        if (str_contains($model, '2.5')) {
-            $generationConfig['thinkingConfig'] = [
-                'thinkingBudget' => 128,
-            ];
-        }
-
-        $payload = [
-            'systemInstruction' => [
-                'parts' => [['text' => $systemInstruction]],
-            ],
-            'contents'          => $contents,
-            'generationConfig'  => $generationConfig,
-        ];
+        $candidateModels = array_values(array_unique([
+            $model,
+            'gemini-3.1-flash-lite',
+            'gemini-3.8-flash',
+            'gemini-4-argon',
+            'gemini-4-hydrogen',
+            'gemma-4-26b-a4b-it',
+        ]));
 
         try {
-            $response = Http::withoutVerifying()
-                ->timeout(30)
-                ->withHeaders(['Content-Type' => 'application/json'])
-                ->post($endpoint, $payload);
+            $response = null;
+            $lastException = null;
 
-            if (!$response->successful()) {
+            foreach ($candidateModels as $candidateModel) {
+                $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/{$candidateModel}:generateContent?key={$apiKey}";
+
+                $generationConfig = [
+                    'temperature'     => 0.15,
+                    'topP'            => 0.85,
+                    'maxOutputTokens' => 2048,
+                ];
+
+                if (str_contains($candidateModel, '2.5')) {
+                    $generationConfig['thinkingConfig'] = [
+                        'thinkingBudget' => 128,
+                    ];
+                }
+
+                $payload = [
+                    'systemInstruction' => [
+                        'parts' => [['text' => $systemInstruction]],
+                    ],
+                    'contents'          => $contents,
+                    'generationConfig'  => $generationConfig,
+                ];
+
+                try {
+                    $response = Http::withoutVerifying()
+                        ->timeout(20)
+                        ->withHeaders(['Content-Type' => 'application/json'])
+                        ->post($endpoint, $payload);
+
+                    if ($response->successful()) {
+                        $lastException = null;
+                        break;
+                    }
+
+                    Log::warning('Gemini API Fallback', [
+                        'model'  => $candidateModel,
+                        'status' => $response->status(),
+                    ]);
+
+                    if (!in_array($response->status(), [404, 429, 503], true)) {
+                        break;
+                    }
+                } catch (\Throwable $e) {
+                    $lastException = $e;
+                    Log::warning('Gemini API Timeout/Exception Fallback', [
+                        'model' => $candidateModel,
+                        'error' => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            if ($lastException && (!$response || !$response->successful())) {
+                throw $lastException;
+            }
+
+            if (!$response || !$response->successful()) {
                 Log::error('Gemini API Error', [
-                    'status' => $response->status(),
-                    'body'   => $response->body(),
+                    'status' => $response?->status(),
+                    'body'   => $response?->body(),
                 ]);
 
                 return [
